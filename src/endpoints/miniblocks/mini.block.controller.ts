@@ -1,24 +1,32 @@
-import { Controller, Get, HttpException, HttpStatus, Param } from "@nestjs/common";
-import { ApiResponse, ApiTags } from "@nestjs/swagger";
-import { MiniBlockDetailed } from "./entities/mini.block.detailed";
-import { MiniBlockService } from "./mini.block.service";
+import {
+  Controller,
+  Get,
+  HttpException,
+  HttpStatus,
+  Param,
+} from '@nestjs/common';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { MiniBlockDetailed } from './entities/mini.block.detailed';
+import { MiniBlockService } from './mini.block.service';
 
 @Controller()
 @ApiTags('miniblocks')
 export class MiniBlockController {
   constructor(private readonly miniBlockService: MiniBlockService) {}
 
-  @Get("/miniblocks/:miniBlockHash")
+  @Get('/miniblocks/:miniBlockHash')
   @ApiResponse({
     status: 200,
     description: 'The details of a given MiniBlock',
-    type: MiniBlockDetailed
+    type: MiniBlockDetailed,
   })
   @ApiResponse({
     status: 404,
-    description: 'Miniblock not found'
+    description: 'Miniblock not found',
   })
-  async getBlock(@Param('miniBlockHash') miniBlockHash: string): Promise<MiniBlockDetailed> {
+  async getBlock(
+    @Param('miniBlockHash') miniBlockHash: string,
+  ): Promise<MiniBlockDetailed> {
     try {
       return await this.miniBlockService.getMiniBlock(miniBlockHash);
     } catch {

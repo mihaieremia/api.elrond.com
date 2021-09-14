@@ -1,15 +1,15 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class Round {
-    @ApiProperty()
-    blockWasProposed: boolean = false;
+  @ApiProperty()
+  blockWasProposed = false;
 
-    @ApiProperty()
-    round: number = 0;
+  @ApiProperty()
+  round = 0;
 
-    @ApiProperty()
-    shard: number = 0;
-    
-    @ApiProperty()
-    timestamp: number = 0;
+  @ApiProperty()
+  shard = 0;
+
+  @ApiProperty()
+  timestamp = 0;
 }

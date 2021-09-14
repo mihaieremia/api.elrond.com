@@ -1,73 +1,73 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { NftType } from "./nft.type";
+import { ApiProperty } from '@nestjs/swagger';
+import { NftType } from './nft.type';
 
 export class TokenProperties {
   @ApiProperty()
-  token: string = '';
+  token = '';
 
   @ApiProperty()
-  name: string = '';
+  name = '';
 
   @ApiProperty()
   type: NftType = NftType.NonFungibleESDT;
 
   @ApiProperty()
-  owner: string = '';
+  owner = '';
 
   @ApiProperty()
-  minted: string = '';
+  minted = '';
 
   @ApiProperty()
-  burnt: string = '';
+  burnt = '';
 
   @ApiProperty()
-  wiped: string = '';
+  wiped = '';
 
   @ApiProperty()
-  decimals: number = 0;
+  decimals = 0;
 
   @ApiProperty()
-  isPaused: boolean = false;
+  isPaused = false;
 
   @ApiProperty()
   tags: string[] = [];
 
   @ApiProperty()
-  royalties: number = 0;
+  royalties = 0;
 
   @ApiProperty()
   uris: string[] = [];
 
   @ApiProperty()
-  url: string = '';
+  url = '';
 
   @ApiProperty()
-  canUpgrade: boolean = false;
+  canUpgrade = false;
 
   @ApiProperty()
-  canMint: boolean = false;
+  canMint = false;
 
   @ApiProperty()
-  canBurn: boolean = false;
+  canBurn = false;
 
   @ApiProperty()
-  canChangeOwner: boolean = false;
+  canChangeOwner = false;
 
   @ApiProperty()
-  canPause: boolean = false;
+  canPause = false;
 
   @ApiProperty()
-  canFreeze: boolean = false;
-  
+  canFreeze = false;
+
   @ApiProperty()
-  canWipe: boolean = false;
-  
+  canWipe = false;
+
   @ApiProperty()
-  canAddSpecialRoles: boolean = false;
-  
+  canAddSpecialRoles = false;
+
   @ApiProperty()
-  canTransferNFTCreateRole: boolean = false;
-  
+  canTransferNFTCreateRole = false;
+
   @ApiProperty()
-  NFTCreateStopped: boolean = false;
+  NFTCreateStopped = false;
 }

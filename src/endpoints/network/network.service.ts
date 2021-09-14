@@ -31,8 +31,8 @@ export class NetworkService {
     private readonly transactionService: TransactionService,
     private readonly dataApiService: DataApiService,
     private readonly apiService: ApiService,
-    @Inject(forwardRef( () => StakeService))
-    private readonly stakeService: StakeService
+    @Inject(forwardRef(() => StakeService))
+    private readonly stakeService: StakeService,
   ) {}
 
   async getConstants(): Promise<NetworkConstants> {

@@ -1,6 +1,6 @@
 export class ExtrasApiTransactionMinInfoDto {
-  sender: string = '';
-  receiver: string = '';
-  data: string = '';
-  value: string = '';
+  sender = '';
+  receiver = '';
+  data = '';
+  value = '';
 }

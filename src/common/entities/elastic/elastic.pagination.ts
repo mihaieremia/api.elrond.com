@@ -1,4 +1,4 @@
 export class ElasticPagination {
-    from: number = 0
-    size: number = 25
+  from = 0;
+  size = 25;
 }

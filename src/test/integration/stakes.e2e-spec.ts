@@ -1,8 +1,8 @@
-import { Test } from "@nestjs/testing";
-import { StakeService } from "src/endpoints/stake/stake.service";
-import { PublicAppModule } from "src/public.app.module";
-import { Constants } from "src/utils/constants";
-import Initializer from "./e2e-init";
+import { Test } from '@nestjs/testing';
+import { StakeService } from 'src/endpoints/stake/stake.service';
+import { PublicAppModule } from 'src/public.app.module';
+import { Constants } from 'src/utils/constants';
+import Initializer from './e2e-init';
 
 describe('Stake Service', () => {
   let stakeService: StakeService;

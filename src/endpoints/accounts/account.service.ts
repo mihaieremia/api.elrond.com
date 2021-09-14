@@ -20,15 +20,15 @@ import { BinaryUtils } from 'src/utils/binary.utils';
 
 @Injectable()
 export class AccountService {
-  private readonly logger: Logger
+  private readonly logger: Logger;
 
   constructor(
-    private readonly elasticService: ElasticService, 
+    private readonly elasticService: ElasticService,
     private readonly gatewayService: GatewayService,
     @Inject(forwardRef(() => CachingService))
     private readonly cachingService: CachingService,
     private readonly vmQueryService: VmQueryService,
-    private readonly apiConfigService: ApiConfigService
+    private readonly apiConfigService: ApiConfigService,
   ) {
     this.logger = new Logger(AccountService.name);
   }
@@ -37,7 +37,7 @@ export class AccountService {
     return await this.cachingService.getOrSetCache(
       'account:count',
       async () => await this.elasticService.getCount('accounts'),
-      Constants.oneMinute()
+      Constants.oneMinute(),
     );
   }
 
@@ -46,7 +46,7 @@ export class AccountService {
     elasticQueryAdapter.condition.should = [
       QueryType.Match('sender', address),
       QueryType.Match('receiver', address),
-    ]
+    ];
 
     try {
       const [
@@ -56,38 +56,64 @@ export class AccountService {
         },
       ] = await Promise.all([
         this.elasticService.getCount('transactions', elasticQueryAdapter),
-        this.gatewayService.get(`address/${address}`)
+        this.gatewayService.get(`address/${address}`),
       ]);
 
-      let shard = AddressUtils.computeShard(AddressUtils.bech32Decode(address));
-  
-      let result = { address, nonce, balance, code, codeHash, rootHash, txCount, username, shard };
-  
+      const shard = AddressUtils.computeShard(
+        AddressUtils.bech32Decode(address),
+      );
+
+      const result = {
+        address,
+        nonce,
+        balance,
+        code,
+        codeHash,
+        rootHash,
+        txCount,
+        username,
+        shard,
+      };
+
       return result;
     } catch (error) {
       this.logger.error(error);
-      this.logger.error(`Error when getting account details for address '${address}'`);
+      this.logger.error(
+        `Error when getting account details for address '${address}'`,
+      );
       return null;
     }
   }
 
   async getAccounts(queryPagination: QueryPagination): Promise<Account[]> {
     const elasticQueryAdapter: ElasticQuery = new ElasticQuery();
-    
+
     const { from, size } = queryPagination;
-    const pagination: ElasticPagination = { 
-      from, size 
+    const pagination: ElasticPagination = {
+      from,
+      size,
     };
     elasticQueryAdapter.pagination = pagination;
 
-    const balanceNum: ElasticSortProperty = { name: 'balanceNum', order: ElasticSortOrder.descending };
+    const balanceNum: ElasticSortProperty = {
+      name: 'balanceNum',
+      order: ElasticSortOrder.descending,
+    };
     elasticQueryAdapter.sort = [balanceNum];
 
-    let result = await this.elasticService.getList('accounts', 'address', elasticQueryAdapter);
+    const result = await this.elasticService.getList(
+      'accounts',
+      'address',
+      elasticQueryAdapter,
+    );
 
-    let accounts: Account[] = result.map(item => ApiUtils.mergeObjects(new Account(), item));
-    for (let account of accounts) {
-      account.shard = AddressUtils.computeShard(AddressUtils.bech32Decode(account.address));
+    const accounts: Account[] = result.map((item) =>
+      ApiUtils.mergeObjects(new Account(), item),
+    );
+    for (const account of accounts) {
+      account.shard = AddressUtils.computeShard(
+        AddressUtils.bech32Decode(account.address),
+      );
     }
 
     return accounts;
@@ -96,9 +122,9 @@ export class AccountService {
   async getDeferredAccount(address: string): Promise<AccountDeferred[]> {
     const publicKey = AddressUtils.bech32Decode(address);
 
-    let [
+    const [
       encodedUserDeferredPaymentList,
-      [ encodedNumBlocksBeforeUnBond ],
+      [encodedNumBlocksBeforeUnBond],
       {
         status: { erd_nonce: erdNonceString },
       },
@@ -107,46 +133,63 @@ export class AccountService {
         this.apiConfigService.getDelegationContractAddress(),
         'getUserDeferredPaymentList',
         undefined,
-        [ publicKey ]
+        [publicKey],
       ),
       this.vmQueryService.vmQuery(
         this.apiConfigService.getDelegationContractAddress(),
         'getNumBlocksBeforeUnBond',
         undefined,
-        []
+        [],
       ),
-      this.gatewayService.get(`network/status/${this.apiConfigService.getDelegationContractShardId()}`)
+      this.gatewayService.get(
+        `network/status/${this.apiConfigService.getDelegationContractShardId()}`,
+      ),
     ]);
 
-    const numBlocksBeforeUnBond = parseInt(this.decode(encodedNumBlocksBeforeUnBond));
+    const numBlocksBeforeUnBond = parseInt(
+      this.decode(encodedNumBlocksBeforeUnBond),
+    );
     const erdNonce = parseInt(erdNonceString);
 
-    const data: AccountDeferred[] = encodedUserDeferredPaymentList.reduce((result: AccountDeferred[], _, index, array) => {
-      if (index % 2 === 0) {
-        const [encodedDeferredPayment, encodedUnstakedNonce] = array.slice(index, index + 2);
+    const data: AccountDeferred[] = encodedUserDeferredPaymentList.reduce(
+      (result: AccountDeferred[], _, index, array) => {
+        if (index % 2 === 0) {
+          const [encodedDeferredPayment, encodedUnstakedNonce] = array.slice(
+            index,
+            index + 2,
+          );
 
-        const deferredPayment = this.decode(encodedDeferredPayment);
-        const unstakedNonce = parseInt(this.decode(encodedUnstakedNonce));
-        const blocksLeft = Math.max(0, unstakedNonce + numBlocksBeforeUnBond - erdNonce);
-        const secondsLeft = blocksLeft * 6; // 6 seconds per block
+          const deferredPayment = this.decode(encodedDeferredPayment);
+          const unstakedNonce = parseInt(this.decode(encodedUnstakedNonce));
+          const blocksLeft = Math.max(
+            0,
+            unstakedNonce + numBlocksBeforeUnBond - erdNonce,
+          );
+          const secondsLeft = blocksLeft * 6; // 6 seconds per block
 
-        result.push({ deferredPayment, secondsLeft });
-      }
+          result.push({ deferredPayment, secondsLeft });
+        }
 
-      return result;
-    }, []);
+        return result;
+      },
+      [],
+    );
 
     return data;
   }
 
-  async getKeys(address: string): Promise<{ blsKey: string, stake: string, status: string, rewardAddress: string }[]> {
-    let publicKey = AddressUtils.bech32Decode(address);
+  async getKeys(
+    address: string,
+  ): Promise<
+    { blsKey: string; stake: string; status: string; rewardAddress: string }[]
+  > {
+    const publicKey = AddressUtils.bech32Decode(address);
 
     const BlsKeysStatus = await this.vmQueryService.vmQuery(
       this.apiConfigService.getAuctionContractAddress(),
       'getBlsKeysStatus',
       this.apiConfigService.getAuctionContractAddress(),
-      [ publicKey ],
+      [publicKey],
     );
 
     if (!BlsKeysStatus) {
@@ -159,7 +202,9 @@ export class AccountService {
       if (index % 2 === 0) {
         const [encodedBlsKey, encodedStatus] = array.slice(index, index + 2);
 
-        const blsKey = BinaryUtils.padHex(Buffer.from(encodedBlsKey, 'base64').toString('hex'));
+        const blsKey = BinaryUtils.padHex(
+          Buffer.from(encodedBlsKey, 'base64').toString('hex'),
+        );
         const status = Buffer.from(encodedStatus, 'base64').toString();
         const stake = '2500000000000000000000';
 
@@ -177,13 +222,16 @@ export class AccountService {
         this.apiConfigService.getStakingContractAddress(),
         'getRewardAddress',
         undefined,
-        [ data[0].blsKey ],
+        [data[0].blsKey],
       );
 
-      const rewardsPublicKey = Buffer.from(encodedRewardsPublicKey, 'base64').toString();
+      const rewardsPublicKey = Buffer.from(
+        encodedRewardsPublicKey,
+        'base64',
+      ).toString();
       const rewardAddress = AddressUtils.bech32Encode(rewardsPublicKey);
 
-      for (let [index, _] of data.entries()) {
+      for (const [index, _] of data.entries()) {
         data[index].rewardAddress = rewardAddress;
       }
     }
@@ -199,8 +247,8 @@ export class AccountService {
             this.apiConfigService.getStakingContractAddress(),
             'getQueueIndex',
             this.apiConfigService.getAuctionContractAddress(),
-            [ blsKey ],
-          )
+            [blsKey],
+          ),
         ),
       ]);
 
@@ -209,7 +257,9 @@ export class AccountService {
         if (index === 0) {
           queueSize = Buffer.from(result, 'base64').toString();
         } else {
-          const [found] = data.filter((x: any) => x.blsKey === queued[index - 1]);
+          const [found] = data.filter(
+            (x: any) => x.blsKey === queued[index - 1],
+          );
 
           found.queueIndex = Buffer.from(result, 'base64').toString();
           found.queueSize = queueSize;
@@ -223,5 +273,5 @@ export class AccountService {
   decode(value: string): string {
     const hex = Buffer.from(value, 'base64').toString('hex');
     return BigInt(hex ? '0x' + hex : hex).toString();
-  };
+  }
 }

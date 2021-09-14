@@ -1,24 +1,24 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class MiniBlockDetailed {
-    @ApiProperty()
-    miniBlockHash: string = '';
+  @ApiProperty()
+  miniBlockHash = '';
 
-    @ApiProperty()
-    receiverBlockHash: string = '';
+  @ApiProperty()
+  receiverBlockHash = '';
 
-    @ApiProperty()
-    receiverShard: number = 0;
+  @ApiProperty()
+  receiverShard = 0;
 
-    @ApiProperty()
-    senderBlockHash: string = '';
+  @ApiProperty()
+  senderBlockHash = '';
 
-    @ApiProperty()
-    senderShard: number = 0;
+  @ApiProperty()
+  senderShard = 0;
 
-    @ApiProperty()
-    timestamp: number = 0;
+  @ApiProperty()
+  timestamp = 0;
 
-    @ApiProperty()
-    type: string = '';
+  @ApiProperty()
+  type = '';
 }

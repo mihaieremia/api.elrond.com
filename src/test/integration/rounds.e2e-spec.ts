@@ -1,10 +1,10 @@
-import { Test } from "@nestjs/testing";
-import { Round } from "src/endpoints/rounds/entities/round";
-import { RoundFilter } from "src/endpoints/rounds/entities/round.filter";
-import { RoundService } from "src/endpoints/rounds/round.service";
-import { PublicAppModule } from "src/public.app.module";
-import { Constants } from "src/utils/constants";
-import Initializer from "./e2e-init";
+import { Test } from '@nestjs/testing';
+import { Round } from 'src/endpoints/rounds/entities/round';
+import { RoundFilter } from 'src/endpoints/rounds/entities/round.filter';
+import { RoundService } from 'src/endpoints/rounds/round.service';
+import { PublicAppModule } from 'src/public.app.module';
+import { Constants } from 'src/utils/constants';
+import Initializer from './e2e-init';
 
 describe('Rounds Service', () => {
   let roundService: RoundService;
@@ -25,15 +25,15 @@ describe('Rounds Service', () => {
 
   describe('Rounds', () => {
     it('all rounds should have round and shard', async () => {
-      for (let round of rounds) {
+      for (const round of rounds) {
         expect(round).toHaveProperty('round');
         expect(round).toHaveProperty('shard');
         expect(round).not.toHaveProperty('shardId');
       }
     });
-    
+
     it('all entities should have round structure', async () => {
-      for (let round of rounds) {
+      for (const round of rounds) {
         expect(round).toHaveStructure(Object.keys(new Round()));
       }
     });
@@ -44,7 +44,7 @@ describe('Rounds Service', () => {
       roundFilter.epoch = 402;
 
       const roundsFiltered = await roundService.getRounds(roundFilter);
-      for (let round of roundsFiltered) {
+      for (const round of roundsFiltered) {
         expect(round.shard).toStrictEqual(roundFilter.shard);
       }
     });

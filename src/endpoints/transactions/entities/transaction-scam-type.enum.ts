@@ -1,12 +1,14 @@
-import { ExtrasApiTransactionScamType } from "src/common/external-dtos/extras-api";
+import { ExtrasApiTransactionScamType } from 'src/common/external-dtos/extras-api';
 
 export enum TransactionScamType {
   none = 'none',
   potentialScam = 'potentialScam',
-  scam = 'scam'
+  scam = 'scam',
 }
 
-export const mapTransactionScamTypeFromExtrasApi = (type: ExtrasApiTransactionScamType | null): TransactionScamType => {
+export const mapTransactionScamTypeFromExtrasApi = (
+  type: ExtrasApiTransactionScamType | null,
+): TransactionScamType => {
   switch (type) {
     case ExtrasApiTransactionScamType.none:
       return TransactionScamType.none;
@@ -17,4 +19,4 @@ export const mapTransactionScamTypeFromExtrasApi = (type: ExtrasApiTransactionSc
     default:
       return TransactionScamType.none;
   }
-}
+};

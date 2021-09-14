@@ -1,8 +1,8 @@
 export class StakeTopup {
-  topUp: string = '';
-  stake: string = '';
-  locked: string = '';
-  numNodes: number = 0;
-  address: string = '';
+  topUp = '';
+  stake = '';
+  locked = '';
+  numNodes = 0;
+  address = '';
   blses: string[] = [];
 }

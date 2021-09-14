@@ -1,4 +1,4 @@
-import { NftType } from "./nft.type";
+import { NftType } from './nft.type';
 
 export class NftFilter {
   search?: string;

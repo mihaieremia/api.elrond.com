@@ -1,3 +1,3 @@
 export class KeyUnbondPeriod {
-  remainingUnBondPeriod: number = 0;
+  remainingUnBondPeriod = 0;
 }

@@ -3,8 +3,8 @@ export class StakeInfo {
   validators?: number;
   stake?: string;
   topUp?: string;
-  locked: string = '0';
-  distribution?: {[key: string]: number};
+  locked = '0';
+  distribution?: { [key: string]: number };
   providers?: any[];
   stakePercent?: number;
   sort?: number;

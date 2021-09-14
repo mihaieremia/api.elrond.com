@@ -1,5 +1,5 @@
 export class GlobalStake {
-  totalValidators: number = 0;
-  activeValidators: number = 0;
-  queueSize: number = 0;
+  totalValidators = 0;
+  activeValidators = 0;
+  queueSize = 0;
 }

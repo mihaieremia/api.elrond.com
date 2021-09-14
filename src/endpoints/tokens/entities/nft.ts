@@ -1,43 +1,43 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { NftMetadata } from "./nft.metadata";
-import { NftType } from "./nft.type";
+import { ApiProperty } from '@nestjs/swagger';
+import { NftMetadata } from './nft.metadata';
+import { NftType } from './nft.type';
 
 export class Nft {
   @ApiProperty()
-  identifier: string = '';
+  identifier = '';
 
   @ApiProperty()
-  collection: string = '';
+  collection = '';
 
   @ApiProperty()
-  timestamp: number = 0;
+  timestamp = 0;
 
   @ApiProperty()
-  attributes: string = '';
+  attributes = '';
 
   @ApiProperty()
-  nonce: number = 0;
+  nonce = 0;
 
   @ApiProperty()
   type: NftType = NftType.NonFungibleESDT;
 
   @ApiProperty()
-  name: string = '';
+  name = '';
 
   @ApiProperty()
-  creator: string = '';
+  creator = '';
 
   @ApiProperty()
-  royalties: number = 0;
+  royalties = 0;
 
   @ApiProperty()
   uris: string[] = [];
 
   @ApiProperty()
-  url: string = '';
+  url = '';
 
   @ApiProperty()
-  thumbnailUrl: string = '';
+  thumbnailUrl = '';
 
   @ApiProperty()
   tags: string[] = [];

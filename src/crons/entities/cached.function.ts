@@ -1,6 +1,6 @@
-import { InvalidationFunction } from "./invalidation.function";
+import { InvalidationFunction } from './invalidation.function';
 
 export class CachedFunction {
-  funcName: string = '';
+  funcName = '';
   invalidations: InvalidationFunction[] = [];
 }

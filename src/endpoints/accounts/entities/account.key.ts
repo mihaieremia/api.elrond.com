@@ -1,15 +1,15 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class AccountKey {
   @ApiProperty()
-  blsKey: string = '';
+  blsKey = '';
 
   @ApiProperty()
-  stake: string = '';
+  stake = '';
 
   @ApiProperty()
-  status: string = '';
+  status = '';
 
   @ApiProperty()
-  rewardAddress: string = '';
+  rewardAddress = '';
 }

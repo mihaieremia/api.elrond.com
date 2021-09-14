@@ -1,10 +1,10 @@
 export class Stats {
-  accounts: number = 0;
-  blocks: number = 0;
-  epoch: number = 0;
-  refreshRate: number = 0;
-  roundsPassed: number = 0;
-  roundsPerEpoch: number = 0;
-  shards: number = 0;
-  transactions: number = 0;
+  accounts = 0;
+  blocks = 0;
+  epoch = 0;
+  refreshRate = 0;
+  roundsPassed = 0;
+  roundsPerEpoch = 0;
+  shards = 0;
+  transactions = 0;
 }

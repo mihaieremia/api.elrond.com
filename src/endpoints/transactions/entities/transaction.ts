@@ -1,56 +1,56 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class Transaction {
   @ApiProperty()
-  txHash: string = '';
+  txHash = '';
 
   @ApiProperty()
-  gasLimit: number = 0;
+  gasLimit = 0;
 
   @ApiProperty()
-  gasPrice: number = 0;
+  gasPrice = 0;
 
   @ApiProperty()
-  gasUsed: number = 0;
+  gasUsed = 0;
 
   @ApiProperty()
-  miniBlockHash: string = '';
+  miniBlockHash = '';
 
   @ApiProperty()
-  nonce: number = 0;
+  nonce = 0;
 
   @ApiProperty()
-  receiver: string = '';
+  receiver = '';
 
   @ApiProperty()
-  receiverShard: number = 0;
+  receiverShard = 0;
 
   @ApiProperty()
-  round: number = 0;
+  round = 0;
 
   @ApiProperty()
-  sender: string = '';
+  sender = '';
 
   @ApiProperty()
-  senderShard: number = 0;
+  senderShard = 0;
 
   @ApiProperty()
-  signature: string = '';
+  signature = '';
 
   @ApiProperty()
-  status: string = '';
+  status = '';
 
   @ApiProperty()
-  value: string = '';
+  value = '';
 
   @ApiProperty()
-  fee: string = '';
+  fee = '';
 
   @ApiProperty()
-  timestamp: number = 0;
+  timestamp = 0;
 
   @ApiProperty()
-  data: string = '';
+  data = '';
 
   @ApiProperty()
   tokenIdentifier?: string;

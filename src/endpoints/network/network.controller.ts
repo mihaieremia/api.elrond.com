@@ -8,51 +8,49 @@ import { Stats } from 'src/endpoints/network/entities/stats';
 @Controller()
 @ApiTags('network')
 export class NetworkController {
-  constructor(
-    private readonly networkService: NetworkService
-  ) {}
+  constructor(private readonly networkService: NetworkService) {}
 
-  @Get("/constants")
+  @Get('/constants')
   @ApiResponse({
     status: 200,
     description: 'The constants',
-    type: NetworkConstants
+    type: NetworkConstants,
   })
   getConstants(): Promise<NetworkConstants> {
     return this.networkService.getConstants();
   }
 
-  @Get("/economics")
+  @Get('/economics')
   @ApiResponse({
     status: 200,
     description: 'The economics details',
-    type: Economics
+    type: Economics,
   })
   async getEconomics(): Promise<Economics> {
     return await this.networkService.getEconomics();
   }
 
-  @Get("/stats")
+  @Get('/stats')
   @ApiResponse({
     status: 200,
     description: 'The network statistics',
-    type: Stats
+    type: Stats,
   })
   async getStats(): Promise<Stats> {
     return await this.networkService.getStats();
   }
 
-  @Get("/validator/statistics")
+  @Get('/validator/statistics')
   @ApiResponse({
     status: 200,
     description: 'Validator statistics',
   })
   async getValidatorStatistics() {
-    let statistics = await this.networkService.getValidatorStatistics();
+    const statistics = await this.networkService.getValidatorStatistics();
 
     return {
       code: 'successful',
-      data: statistics
+      data: statistics,
     };
   }
 }

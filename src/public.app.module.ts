@@ -58,21 +58,24 @@ import { ExtrasApiService } from './common/extras-api.service';
 import { TransactionScamCheckService } from './endpoints/transactions/scam-check/transaction-scam-check.service';
 import { PotentialScamTransactionChecker } from './endpoints/transactions/scam-check/potential-scam-transaction.checker';
 const DailyRotateFile = require('winston-daily-rotate-file');
-import "./utils/extensions/array.extensions";
-import "./utils/extensions/date.extensions";
-import "./utils/extensions/number.extensions";
+import './utils/extensions/array.extensions';
+import './utils/extensions/date.extensions';
+import './utils/extensions/number.extensions';
 import { NftThumbnailService } from './common/nft.thumbnail.service';
 import { NftExtendedAttributesService } from './common/nft.extendedattributes.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
-      load: [configuration]
+      load: [configuration],
     }),
     CacheModule.register(),
     WinstonModule.forRoot({
       level: 'verbose',
-      format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.json(),
+      ),
       transports: [
         new winston.transports.Console({ level: 'info' }),
         new DailyRotateFile({
@@ -83,31 +86,87 @@ import { NftExtendedAttributesService } from './common/nft.extendedattributes.se
           maxFiles: '14d',
           createSymlink: true,
           dirname: 'dist/logs',
-          symlinkName: 'application.log'
+          symlinkName: 'application.log',
         }),
-      ]
+      ],
     }),
   ],
   controllers: [
-    NetworkController, AccountController, TransactionController, TokenController, BlockController,
-    MiniBlockController, RoundController, NodeController, ProviderController,
-    DelegationLegacyController, StakeController, DelegationController,
-    VmQueryController, ShardController, IdentitiesController, ProxyController,
-    KeysController, WaitingListController, TagController
+    NetworkController,
+    AccountController,
+    TransactionController,
+    TokenController,
+    BlockController,
+    MiniBlockController,
+    RoundController,
+    NodeController,
+    ProviderController,
+    DelegationLegacyController,
+    StakeController,
+    DelegationController,
+    VmQueryController,
+    ShardController,
+    IdentitiesController,
+    ProxyController,
+    KeysController,
+    WaitingListController,
+    TagController,
   ],
   providers: [
-    NetworkService, ApiConfigService, AccountService, ElasticService, GatewayService, TransactionService,
-    TokenService, BlockService, MiniBlockService, RoundService, NodeService, VmQueryService,
-    CachingService, KeybaseService, ProviderService,
-    StakeService, LoggingInterceptor, ApiService, ProfilerService, DelegationLegacyService,
-    DelegationService, CacheConfigService, CachingInterceptor, ShardService, MetricsService, IdentitiesService,
-    TokenAssetService, DataApiService, KeysService, WaitingListService, BlsService, TagService, ExtrasApiService,
-    TransactionScamCheckService, PotentialScamTransactionChecker, NftThumbnailService, NftExtendedAttributesService,
+    NetworkService,
+    ApiConfigService,
+    AccountService,
+    ElasticService,
+    GatewayService,
+    TransactionService,
+    TokenService,
+    BlockService,
+    MiniBlockService,
+    RoundService,
+    NodeService,
+    VmQueryService,
+    CachingService,
+    KeybaseService,
+    ProviderService,
+    StakeService,
+    LoggingInterceptor,
+    ApiService,
+    ProfilerService,
+    DelegationLegacyService,
+    DelegationService,
+    CacheConfigService,
+    CachingInterceptor,
+    ShardService,
+    MetricsService,
+    IdentitiesService,
+    TokenAssetService,
+    DataApiService,
+    KeysService,
+    WaitingListService,
+    BlsService,
+    TagService,
+    ExtrasApiService,
+    TransactionScamCheckService,
+    PotentialScamTransactionChecker,
+    NftThumbnailService,
+    NftExtendedAttributesService,
   ],
   exports: [
-    ApiConfigService, RoundService, CachingService, TransactionService, GatewayService, MetricsService, NodeService,
-    TokenService, ShardService, IdentitiesService, ProviderService, KeybaseService, DataApiService, ApiService,
-    BlsService
-  ]
+    ApiConfigService,
+    RoundService,
+    CachingService,
+    TransactionService,
+    GatewayService,
+    MetricsService,
+    NodeService,
+    TokenService,
+    ShardService,
+    IdentitiesService,
+    ProviderService,
+    KeybaseService,
+    DataApiService,
+    ApiService,
+    BlsService,
+  ],
 })
-export class PublicAppModule { }
+export class PublicAppModule {}

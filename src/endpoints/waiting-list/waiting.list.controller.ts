@@ -8,25 +8,25 @@ import { WaitingListService } from './waiting.list.service';
 export class WaitingListController {
   constructor(private readonly waitingListService: WaitingListService) {}
 
-  @Get("/waiting-list")
+  @Get('/waiting-list')
   @ApiResponse({
     status: 200,
     description: 'Waiting list',
     type: WaitingList,
-    isArray: true
+    isArray: true,
   })
   getWaitingList(): Promise<WaitingList[]> {
     return this.waitingListService.getWaitingList();
   }
 
-  @Get("/waiting-list/count")
+  @Get('/waiting-list/count')
   getWaitingListCount(): Promise<number> {
-    return this.waitingListService.getWaitingListCount();  
+    return this.waitingListService.getWaitingListCount();
   }
 
-  @Get("/waiting-list/c")
+  @Get('/waiting-list/c')
   @ApiExcludeEndpoint()
   getWaitingListCountAlternative(): Promise<number> {
-    return this.waitingListService.getWaitingListCount();  
+    return this.waitingListService.getWaitingListCount();
   }
 }

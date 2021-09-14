@@ -8,11 +8,12 @@ export class PotentialScamTransactionChecker {
 
   check(transaction: TransactionDetailed): boolean {
     const { receiver, data } = transaction;
-    return this.isDataLengthValid(data) &&
-      !this.isScAddress(receiver);
+    return this.isDataLengthValid(data) && !this.isScAddress(receiver);
   }
 
-  private isDataLengthValid = (data: string): boolean => data?.length >= this.minDataLength;
+  private isDataLengthValid = (data: string): boolean =>
+    data?.length >= this.minDataLength;
 
-  private isScAddress = (address: string): boolean => new Address(address).isContractAddress();
+  private isScAddress = (address: string): boolean =>
+    new Address(address).isContractAddress();
 }

@@ -1,16 +1,30 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Query, Res } from "@nestjs/common";
-import { ApiExcludeEndpoint, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { GatewayService } from "src/common/gateway.service";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  Res,
+} from '@nestjs/common';
+import {
+  ApiExcludeEndpoint,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { GatewayService } from 'src/common/gateway.service';
 import { Response } from 'express';
-import { VmQueryRequest } from "../vm.query/entities/vm.query.request";
-import { VmQueryService } from "../vm.query/vm.query.service";
+import { VmQueryRequest } from '../vm.query/entities/vm.query.request';
+import { VmQueryService } from '../vm.query/vm.query.service';
 
 @Controller()
 @ApiTags('proxy')
 export class ProxyController {
   constructor(
     private readonly gatewayService: GatewayService,
-    private readonly vmQueryService: VmQueryService
+    private readonly vmQueryService: VmQueryService,
   ) {}
 
   @Get('/address/:address')
@@ -21,37 +35,56 @@ export class ProxyController {
 
   @Get('/address/:address/balance')
   @ApiExcludeEndpoint()
-  async getAddressBalance(@Res() res: Response, @Param('address') address: string) {
+  async getAddressBalance(
+    @Res() res: Response,
+    @Param('address') address: string,
+  ) {
     await this.gatewayGet(res, `address/${address}/balance`);
   }
 
   @Get('/address/:address/nonce')
   @ApiExcludeEndpoint()
-  async getAddressNonce(@Res() res: Response, @Param('address') address: string) {
+  async getAddressNonce(
+    @Res() res: Response,
+    @Param('address') address: string,
+  ) {
     await this.gatewayGet(res, `address/${address}/nonce`);
   }
 
   @Get('/address/:address/shard')
   @ApiExcludeEndpoint()
-  async getAddressShard(@Res() res: Response, @Param('address') address: string) {
+  async getAddressShard(
+    @Res() res: Response,
+    @Param('address') address: string,
+  ) {
     await this.gatewayGet(res, `address/${address}/shard`);
   }
 
   @Get('/address/:address/storage/:key')
   @ApiExcludeEndpoint()
-  async getAddressStorageKey(@Res() res: Response, @Param('address') address: string, @Param('key') key: string) {
+  async getAddressStorageKey(
+    @Res() res: Response,
+    @Param('address') address: string,
+    @Param('key') key: string,
+  ) {
     await this.gatewayGet(res, `address/${address}/storage/${key}`);
   }
 
   @Get('/address/:address/transactions')
   @ApiExcludeEndpoint()
-  async getAddressTransactions(@Res() res: Response, @Param('address') address: string) {
+  async getAddressTransactions(
+    @Res() res: Response,
+    @Param('address') address: string,
+  ) {
     await this.gatewayGet(res, `address/${address}/transactions`);
   }
 
   @Get('/address/:address/esdt')
   @ApiExcludeEndpoint()
-  async getAddressEsdt(@Res() res: Response, @Param('address') address: string) {
+  async getAddressEsdt(
+    @Res() res: Response,
+    @Param('address') address: string,
+  ) {
     await this.gatewayGet(res, `address/${address}/esdt`);
   }
 
@@ -88,9 +121,13 @@ export class ProxyController {
   @Get('/transaction/:hash')
   @ApiExcludeEndpoint()
   @ApiQuery({ name: 'sender', description: 'Sender', required: false })
-  @ApiQuery({ name: 'withResults', description: 'Include results which correspond to the hash', required: false })
+  @ApiQuery({
+    name: 'withResults',
+    description: 'Include results which correspond to the hash',
+    required: false,
+  })
   async getTransaction(
-    @Res() res: Response, 
+    @Res() res: Response,
     @Param('hash') hash: string,
     @Query('sender') sender: string | undefined,
     @Query('withResults') withResults: string | undefined,
@@ -102,7 +139,7 @@ export class ProxyController {
   @ApiExcludeEndpoint()
   @ApiQuery({ name: 'sender', description: 'Sender', required: false })
   async getTransactionStatus(
-    @Res() res: Response, 
+    @Res() res: Response,
     @Param('hash') hash: string,
     @Query('sender') sender: string,
   ) {
@@ -135,7 +172,12 @@ export class ProxyController {
   })
   async queryLegacy(@Body() query: VmQueryRequest, @Res() res: Response) {
     try {
-      let result = await this.vmQueryService.vmQueryFullResult(query.scAddress, query.funcName, query.caller, query.args);
+      const result = await this.vmQueryService.vmQueryFullResult(
+        query.scAddress,
+        query.funcName,
+        query.caller,
+        query.args,
+      );
       res.status(HttpStatus.OK).json(result).send();
     } catch (error) {
       res.status(HttpStatus.BAD_REQUEST).json(error.response.data).send();
@@ -144,7 +186,10 @@ export class ProxyController {
 
   @Get('/network/status/:shard')
   @ApiExcludeEndpoint()
-  async getNetworkStatusShard(@Res() res: Response, @Param('shard') shard: string) {
+  async getNetworkStatusShard(
+    @Res() res: Response,
+    @Param('shard') shard: string,
+  ) {
     await this.gatewayGet(res, `network/status/${shard}`);
   }
 
@@ -180,9 +225,13 @@ export class ProxyController {
 
   @Get('/block/:shard/by-nonce/:nonce')
   @ApiExcludeEndpoint()
-  @ApiQuery({ name: 'withTxs', description: 'Include transactions', required: false })
+  @ApiQuery({
+    name: 'withTxs',
+    description: 'Include transactions',
+    required: false,
+  })
   async getBlockByShardAndNonce(
-    @Res() res: Response, 
+    @Res() res: Response,
     @Param('shard') shard: string,
     @Param('nonce') nonce: number,
     @Query('withTxs') withTxs: string | undefined,
@@ -192,9 +241,13 @@ export class ProxyController {
 
   @Get('/block/:shard/by-hash/:hash')
   @ApiExcludeEndpoint()
-  @ApiQuery({ name: 'withTxs', description: 'Include transactions', required: false })
+  @ApiQuery({
+    name: 'withTxs',
+    description: 'Include transactions',
+    required: false,
+  })
   async getBlockByShardAndHash(
-    @Res() res: Response, 
+    @Res() res: Response,
     @Param('shard') shard: string,
     @Param('hash') hash: number,
     @Query('withTxs') withTxs: string | undefined,
@@ -205,7 +258,7 @@ export class ProxyController {
   @Get('/block-atlas/:shard/:nonce')
   @ApiExcludeEndpoint()
   async getBlockAtlas(
-    @Res() res: Response, 
+    @Res() res: Response,
     @Param('shard') shard: string,
     @Param('nonce') nonce: number,
   ) {
@@ -214,7 +267,10 @@ export class ProxyController {
 
   @Get('/hyperblock/by-nonce/:nonce')
   @ApiExcludeEndpoint()
-  async getHyperblockByNonce(@Res() res: Response, @Param('nonce') nonce: number) {
+  async getHyperblockByNonce(
+    @Res() res: Response,
+    @Param('nonce') nonce: number,
+  ) {
     await this.gatewayGet(res, `hyperblock/by-nonce/${nonce}`);
   }
 
@@ -224,13 +280,22 @@ export class ProxyController {
     await this.gatewayGet(res, `hyperblock/by-hash/${hash}`);
   }
 
-  private async gatewayGet(@Res() res: Response, url: string, params: any = undefined) {
+  private async gatewayGet(
+    @Res() res: Response,
+    url: string,
+    params: any = undefined,
+  ) {
     if (params) {
-      url += '?' + Object.keys(params).filter(key => params[key] !== undefined).map(key => `${key}=${params[key]}`).join('&')
+      url +=
+        '?' +
+        Object.keys(params)
+          .filter((key) => params[key] !== undefined)
+          .map((key) => `${key}=${params[key]}`)
+          .join('&');
     }
 
     try {
-      let result = await this.gatewayService.getRaw(url);
+      const result = await this.gatewayService.getRaw(url);
       res.json(result.data);
     } catch (error) {
       res.status(HttpStatus.BAD_REQUEST).json(error.response.data).send();
@@ -239,7 +304,7 @@ export class ProxyController {
 
   private async gatewayPost(@Res() res: Response, url: string, data: any) {
     try {
-      let result = await this.gatewayService.createRaw(url, data);
+      const result = await this.gatewayService.createRaw(url, data);
       res.json(result.data);
     } catch (error) {
       res.status(HttpStatus.BAD_REQUEST).json(error.response.data).send();

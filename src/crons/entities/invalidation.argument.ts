@@ -1,4 +1,4 @@
 export class InvalidationArgument {
-    index: number | undefined;
-    value: string | undefined;
+  index: number | undefined;
+  value: string | undefined;
 }

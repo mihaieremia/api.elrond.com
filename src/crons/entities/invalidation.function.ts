@@ -1,6 +1,6 @@
-import { InvalidationArgument } from "./invalidation.argument";
+import { InvalidationArgument } from './invalidation.argument';
 
 export class InvalidationFunction {
-    funcName: string = '';
-    args: InvalidationArgument[] = [];
+  funcName = '';
+  args: InvalidationArgument[] = [];
 }

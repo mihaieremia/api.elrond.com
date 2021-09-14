@@ -3,7 +3,12 @@ export class RoundUtils {
     return Math.floor(round / 14401);
   }
 
-  static getExpires(epochs: number, roundsPassed: number, roundsPerEpoch: number, roundDuration: number) {
+  static getExpires(
+    epochs: number,
+    roundsPassed: number,
+    roundsPerEpoch: number,
+    roundDuration: number,
+  ) {
     const now = Math.floor(Date.now() / 1000);
 
     if (epochs === 0) {
@@ -14,5 +19,5 @@ export class RoundUtils {
     const lastEpoch = (roundsPerEpoch - roundsPassed) * roundDuration;
 
     return now + fullEpochs + lastEpoch;
-  };
+  }
 }

@@ -1,4 +1,4 @@
 export enum NodeType {
-    observer = 'observer',
-    validator = 'validator'
+  observer = 'observer',
+  validator = 'validator',
 }

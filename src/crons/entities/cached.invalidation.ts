@@ -1,3 +1,1 @@
-export class CachedInvalidation {
-  
-}
+export class CachedInvalidation {}

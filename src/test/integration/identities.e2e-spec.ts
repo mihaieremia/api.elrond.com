@@ -1,9 +1,9 @@
-import { Test } from "@nestjs/testing";
-import { Identity } from "src/endpoints/identities/entities/identity";
-import { IdentitiesService } from "src/endpoints/identities/identities.service";
-import { PublicAppModule } from "src/public.app.module";
-import { Constants } from "src/utils/constants";
-import Initializer from "./e2e-init";
+import { Test } from '@nestjs/testing';
+import { Identity } from 'src/endpoints/identities/entities/identity';
+import { IdentitiesService } from 'src/endpoints/identities/identities.service';
+import { PublicAppModule } from 'src/public.app.module';
+import { Constants } from 'src/utils/constants';
+import Initializer from './e2e-init';
 
 describe('Identities Service', () => {
   let identityService: IdentitiesService;
@@ -24,7 +24,7 @@ describe('Identities Service', () => {
 
   describe('Identities', () => {
     it('all identities should have provider stake, topUp and locked', async () => {
-      for (let identity of identities) {
+      for (const identity of identities) {
         expect(identity).toHaveProperty('stake');
         expect(identity).toHaveProperty('topUp');
         expect(identity).toHaveProperty('locked');
@@ -36,20 +36,20 @@ describe('Identities Service', () => {
 
       while (index < identities.length) {
         expect(identities[index]).toBeDefined();
-        expect(identities[index-1]).toHaveProperty('locked');
+        expect(identities[index - 1]).toHaveProperty('locked');
         expect(identities[index]).toHaveProperty('locked');
-        if (identities[index].locked < identities[index-1].locked) {
+        if (identities[index].locked < identities[index - 1].locked) {
           expect(false);
         }
-        index ++;
+        index++;
       }
     });
 
     it('should distribution sum be 1', async () => {
-      for (let identity of identities) {
+      for (const identity of identities) {
         if (identity.distribution) {
           let sum = 0;
-          for (let distribution of Object.values(identity.distribution)) {
+          for (const distribution of Object.values(identity.distribution)) {
             sum += distribution;
           }
 

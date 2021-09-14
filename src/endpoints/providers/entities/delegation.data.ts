@@ -1,5 +1,5 @@
 export class DelegationData {
   aprValue: number | undefined = undefined;
-  featured: boolean = false;
+  featured = false;
   contract: string | null = null;
 }

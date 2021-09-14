@@ -1,6 +1,10 @@
 import { Test } from '@nestjs/testing';
 import { CachingService } from 'src/common/caching.service';
-import { ExtrasApiScamTransactionResult, ExtrasApiTransactionMinInfoDto, ExtrasApiTransactionScamType } from 'src/common/external-dtos/extras-api';
+import {
+  ExtrasApiScamTransactionResult,
+  ExtrasApiTransactionMinInfoDto,
+  ExtrasApiTransactionScamType,
+} from 'src/common/external-dtos/extras-api';
 import { ExtrasApiService } from 'src/common/extras-api.service';
 import { TransactionScamType } from '../entities/transaction-scam-type.enum';
 import { TransactionDetailed } from '../entities/transaction.detailed';
@@ -21,31 +25,52 @@ describe('TransactionScamCheckService', () => {
         {
           provide: ExtrasApiService,
           useValue: {
-            checkScamTransaction() { return; }
+            checkScamTransaction() {
+              return;
+            },
           },
         },
         {
           provide: CachingService,
           useValue: {
-            getOrSetCache() { return; }
+            getOrSetCache() {
+              return;
+            },
           },
-        }
+        },
       ],
     }).compile();
 
     cachingService = module.get<CachingService>(CachingService);
     extrasApiService = module.get<ExtrasApiService>(ExtrasApiService);
-    potentialScamTransactionChecker = module.get<PotentialScamTransactionChecker>(PotentialScamTransactionChecker);
-    transactionScamCheckService = module.get<TransactionScamCheckService>(TransactionScamCheckService);
+    potentialScamTransactionChecker =
+      module.get<PotentialScamTransactionChecker>(
+        PotentialScamTransactionChecker,
+      );
+    transactionScamCheckService = module.get<TransactionScamCheckService>(
+      TransactionScamCheckService,
+    );
   });
 
   it('potential scam checker returns false - returns null', async () => {
     // Arrange.
     const tx = new TransactionDetailed();
-    jest.spyOn(potentialScamTransactionChecker, 'check').mockImplementation(() => false);
+    jest
+      .spyOn(potentialScamTransactionChecker, 'check')
+      .mockImplementation(() => false);
     const extrasApiScamTransactionResult = new ExtrasApiScamTransactionResult();
-    jest.spyOn(extrasApiService, 'checkScamTransaction').mockImplementation(() => Promise.resolve(extrasApiScamTransactionResult));
-    jest.spyOn(cachingService, 'getOrSetCache').mockImplementation(() => extrasApiService.checkScamTransaction(new ExtrasApiTransactionMinInfoDto()));
+    jest
+      .spyOn(extrasApiService, 'checkScamTransaction')
+      .mockImplementation(() =>
+        Promise.resolve(extrasApiScamTransactionResult),
+      );
+    jest
+      .spyOn(cachingService, 'getOrSetCache')
+      .mockImplementation(() =>
+        extrasApiService.checkScamTransaction(
+          new ExtrasApiTransactionMinInfoDto(),
+        ),
+      );
 
     // Act.
     const result = await transactionScamCheckService.getScamInfo(tx);
@@ -60,9 +85,19 @@ describe('TransactionScamCheckService', () => {
   it('scam transaction result is null - returns null', async () => {
     // Arrange.
     const tx = new TransactionDetailed();
-    jest.spyOn(potentialScamTransactionChecker, 'check').mockImplementation(() => true);
-    jest.spyOn(extrasApiService, 'checkScamTransaction').mockImplementation(() => Promise.resolve(null));
-    jest.spyOn(cachingService, 'getOrSetCache').mockImplementation(() => extrasApiService.checkScamTransaction(new ExtrasApiTransactionMinInfoDto()));
+    jest
+      .spyOn(potentialScamTransactionChecker, 'check')
+      .mockImplementation(() => true);
+    jest
+      .spyOn(extrasApiService, 'checkScamTransaction')
+      .mockImplementation(() => Promise.resolve(null));
+    jest
+      .spyOn(cachingService, 'getOrSetCache')
+      .mockImplementation(() =>
+        extrasApiService.checkScamTransaction(
+          new ExtrasApiTransactionMinInfoDto(),
+        ),
+      );
 
     // Act.
     const result = await transactionScamCheckService.getScamInfo(tx);
@@ -77,11 +112,23 @@ describe('TransactionScamCheckService', () => {
   it('scam transaction result type is none - returns null', async () => {
     // Arrange.
     const tx = new TransactionDetailed();
-    jest.spyOn(potentialScamTransactionChecker, 'check').mockImplementation(() => true);
+    jest
+      .spyOn(potentialScamTransactionChecker, 'check')
+      .mockImplementation(() => true);
     const extrasApiScamTransactionResult = new ExtrasApiScamTransactionResult();
     extrasApiScamTransactionResult.type = ExtrasApiTransactionScamType.none;
-    jest.spyOn(extrasApiService, 'checkScamTransaction').mockImplementation(() => Promise.resolve(extrasApiScamTransactionResult));
-    jest.spyOn(cachingService, 'getOrSetCache').mockImplementation(() => extrasApiService.checkScamTransaction(new ExtrasApiTransactionMinInfoDto()));
+    jest
+      .spyOn(extrasApiService, 'checkScamTransaction')
+      .mockImplementation(() =>
+        Promise.resolve(extrasApiScamTransactionResult),
+      );
+    jest
+      .spyOn(cachingService, 'getOrSetCache')
+      .mockImplementation(() =>
+        extrasApiService.checkScamTransaction(
+          new ExtrasApiTransactionMinInfoDto(),
+        ),
+      );
 
     // Act.
     const result = await transactionScamCheckService.getScamInfo(tx);
@@ -96,12 +143,24 @@ describe('TransactionScamCheckService', () => {
   it('scam transaction result type is scam - returns scam', async () => {
     // Arrange.
     const tx = new TransactionDetailed();
-    jest.spyOn(potentialScamTransactionChecker, 'check').mockImplementation(() => true);
+    jest
+      .spyOn(potentialScamTransactionChecker, 'check')
+      .mockImplementation(() => true);
     const extrasApiScamTransactionResult = new ExtrasApiScamTransactionResult();
     extrasApiScamTransactionResult.type = ExtrasApiTransactionScamType.scam;
     extrasApiScamTransactionResult.info = 'Scam report';
-    jest.spyOn(extrasApiService, 'checkScamTransaction').mockImplementation(() => Promise.resolve(extrasApiScamTransactionResult));
-    jest.spyOn(cachingService, 'getOrSetCache').mockImplementation(() => extrasApiService.checkScamTransaction(new ExtrasApiTransactionMinInfoDto()));
+    jest
+      .spyOn(extrasApiService, 'checkScamTransaction')
+      .mockImplementation(() =>
+        Promise.resolve(extrasApiScamTransactionResult),
+      );
+    jest
+      .spyOn(cachingService, 'getOrSetCache')
+      .mockImplementation(() =>
+        extrasApiService.checkScamTransaction(
+          new ExtrasApiTransactionMinInfoDto(),
+        ),
+      );
 
     // Act.
     const result = await transactionScamCheckService.getScamInfo(tx);
@@ -119,12 +178,25 @@ describe('TransactionScamCheckService', () => {
   it('scam transaction result type is potentialScam - returns potentialScam', async () => {
     // Arrange.
     const tx = new TransactionDetailed();
-    jest.spyOn(potentialScamTransactionChecker, 'check').mockImplementation(() => true);
+    jest
+      .spyOn(potentialScamTransactionChecker, 'check')
+      .mockImplementation(() => true);
     const extrasApiScamTransactionResult = new ExtrasApiScamTransactionResult();
-    extrasApiScamTransactionResult.type = ExtrasApiTransactionScamType.potentialScam;
+    extrasApiScamTransactionResult.type =
+      ExtrasApiTransactionScamType.potentialScam;
     extrasApiScamTransactionResult.info = 'Potential scam report';
-    jest.spyOn(extrasApiService, 'checkScamTransaction').mockImplementation(() => Promise.resolve(extrasApiScamTransactionResult));
-    jest.spyOn(cachingService, 'getOrSetCache').mockImplementation(() => extrasApiService.checkScamTransaction(new ExtrasApiTransactionMinInfoDto()));
+    jest
+      .spyOn(extrasApiService, 'checkScamTransaction')
+      .mockImplementation(() =>
+        Promise.resolve(extrasApiScamTransactionResult),
+      );
+    jest
+      .spyOn(cachingService, 'getOrSetCache')
+      .mockImplementation(() =>
+        extrasApiService.checkScamTransaction(
+          new ExtrasApiTransactionMinInfoDto(),
+        ),
+      );
 
     // Act.
     const result = await transactionScamCheckService.getScamInfo(tx);

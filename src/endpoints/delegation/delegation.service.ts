@@ -1,10 +1,10 @@
-import { Injectable } from "@nestjs/common";
-import { ApiConfigService } from "src/common/api.config.service";
-import { CachingService } from "src/common/caching.service";
-import { VmQueryService } from "src/endpoints/vm.query/vm.query.service";
-import { Delegation } from "./entities/delegation";
-import { NodeService } from "../nodes/node.service";
-import { Constants } from "src/utils/constants";
+import { Injectable } from '@nestjs/common';
+import { ApiConfigService } from 'src/common/api.config.service';
+import { CachingService } from 'src/common/caching.service';
+import { VmQueryService } from 'src/endpoints/vm.query/vm.query.service';
+import { Delegation } from './entities/delegation';
+import { NodeService } from '../nodes/node.service';
+import { Constants } from 'src/utils/constants';
 
 @Injectable()
 export class DelegationService {
@@ -12,14 +12,14 @@ export class DelegationService {
     private readonly vmQueryService: VmQueryService,
     private readonly apiConfigService: ApiConfigService,
     private readonly cachingService: CachingService,
-    private readonly nodeService: NodeService
+    private readonly nodeService: NodeService,
   ) {}
 
   async getDelegation(): Promise<Delegation> {
     return this.cachingService.getOrSetCache(
       'delegation',
       async () => await this.getDelegationRaw(),
-      Constants.oneMinute() * 10
+      Constants.oneMinute() * 10,
     );
   }
 
@@ -29,15 +29,20 @@ export class DelegationService {
       'getContractConfig',
     );
 
-    let nodes = await this.nodeService.getAllNodes();
-    let providerAddresses = nodes.map(node => node.provider ? node.provider : node.owner);
+    const nodes = await this.nodeService.getAllNodes();
+    let providerAddresses = nodes.map((node) =>
+      node.provider ? node.provider : node.owner,
+    );
 
     providerAddresses = [...new Set(providerAddresses)];
 
-    // @ts-ignore
-    const minDelegationHex = Buffer.from(configsBase64.pop(), 'base64').toString('hex');
+    const minDelegationHex = Buffer.from(
+      // @ts-ignore
+      configsBase64.pop(),
+      'base64',
+    ).toString('hex');
     const minDelegation = BigInt(
-      minDelegationHex ? '0x' + minDelegationHex : minDelegationHex
+      minDelegationHex ? '0x' + minDelegationHex : minDelegationHex,
     ).toString();
 
     const { stake, topUp } = nodes.reduce(
@@ -50,7 +55,7 @@ export class DelegationService {
       {
         stake: BigInt(0),
         topUp: BigInt(0),
-      }
+      },
     );
 
     return {

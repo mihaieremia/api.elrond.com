@@ -13,8 +13,8 @@ describe('Caching Service', () => {
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-        imports: [PublicAppModule],
-      }).compile();
+      imports: [PublicAppModule],
+    }).compile();
 
     cachingService = moduleRef.get<CachingService>(CachingService);
   });
@@ -34,48 +34,80 @@ describe('Caching Service', () => {
     });
 
     it(`should return 'test-update' value after key is set`, async () => {
-      await cachingService.setCacheLocal('test', 'test-update', Constants.oneSecond());
+      await cachingService.setCacheLocal(
+        'test',
+        'test-update',
+        Constants.oneSecond(),
+      );
 
       const cacheValue = await cachingService.getCacheLocal('test');
       expect(cacheValue).toBe('test-update');
     });
 
-    it(`should return undefined because key is invalidated`, async() => {
+    it(`should return undefined because key is invalidated`, async () => {
       await cachingService.deleteInCache('test');
 
       const cacheValue = await cachingService.getCacheLocal('test');
       expect(cacheValue).toBeUndefined();
     });
-
   });
 
   describe('Get Or Set Cache', () => {
     it(`should return 'test' value after key is set`, async () => {
-      const cacheValue = await cachingService.getOrSetCache('test', async () => 'test', Constants.oneSecond());
+      const cacheValue = await cachingService.getOrSetCache(
+        'test',
+        async () => 'test',
+        Constants.oneSecond(),
+      );
       expect(cacheValue).toBe('test');
-    })
+    });
   });
 
   describe('Batch process in chunks', () => {
-    let input: Array<Number> = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-    let output: Array<String> = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15'];
-    let emptyOutput: Array<any> = Array(15).fill(null);
-    let cacheKeyFunction = (number: Number) => number.toString();
-    let handlerFunction = async(number: Number) => await number.toString();
+    const input: Array<number> = [
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+    ];
+    const output: Array<string> = [
+      '1',
+      '2',
+      '3',
+      '4',
+      '5',
+      '6',
+      '7',
+      '8',
+      '9',
+      '10',
+      '11',
+      '12',
+      '13',
+      '14',
+      '15',
+    ];
+    const emptyOutput: Array<any> = Array(15).fill(null);
+    const cacheKeyFunction = (number: number) => number.toString();
+    const handlerFunction = async (number: number) => await number.toString();
 
     it(`should return emptyOutput because keys aren't set`, async () => {
-      const cacheValueChunks = await cachingService.batchGetCache(input.map((x) => cacheKeyFunction(x)));
+      const cacheValueChunks = await cachingService.batchGetCache(
+        input.map((x) => cacheKeyFunction(x)),
+      );
 
       expect(cacheValueChunks).toStrictEqual(emptyOutput);
     });
 
     it(`should return ouput keys as string`, async () => {
-      await cachingService.batchProcess(input, cacheKeyFunction, handlerFunction, Constants.oneSecond());
+      await cachingService.batchProcess(
+        input,
+        cacheKeyFunction,
+        handlerFunction,
+        Constants.oneSecond(),
+      );
 
-      const cacheValueChunks = await cachingService.batchGetCache(input.map((x) => cacheKeyFunction(x)));
+      const cacheValueChunks = await cachingService.batchGetCache(
+        input.map((x) => cacheKeyFunction(x)),
+      );
       expect(cacheValueChunks).toStrictEqual(output);
     });
-
   });
-
 });

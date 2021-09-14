@@ -1,4 +1,4 @@
 export enum TokenAssetStatus {
   active = 'active',
-  inactive = 'inactive'
+  inactive = 'inactive',
 }

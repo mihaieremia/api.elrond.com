@@ -1,15 +1,15 @@
-import { Injectable } from "@nestjs/common";
-import { ApiConfigService } from "src/common/api.config.service";
-import { VmQueryService } from "src/endpoints/vm.query/vm.query.service";
-import { DelegationLegacy } from "./entities/delegation.legacy";
-import { AccountDelegationLegacy } from "./entities/account.delegation.legacy";
-import { AddressUtils } from "src/utils/address.utils";
+import { Injectable } from '@nestjs/common';
+import { ApiConfigService } from 'src/common/api.config.service';
+import { VmQueryService } from 'src/endpoints/vm.query/vm.query.service';
+import { DelegationLegacy } from './entities/delegation.legacy';
+import { AccountDelegationLegacy } from './entities/account.delegation.legacy';
+import { AddressUtils } from 'src/utils/address.utils';
 
 @Injectable()
 export class DelegationLegacyService {
   constructor(
     private readonly vmQueryService: VmQueryService,
-    private readonly apiConfigService: ApiConfigService
+    private readonly apiConfigService: ApiConfigService,
   ) {}
 
   async getDelegation(): Promise<DelegationLegacy> {
@@ -44,23 +44,27 @@ export class DelegationLegacyService {
     };
   }
 
-  async getDelegationForAddress(address: string): Promise<AccountDelegationLegacy> {
+  async getDelegationForAddress(
+    address: string,
+  ): Promise<AccountDelegationLegacy> {
     const publicKey = AddressUtils.bech32Decode(address);
 
-    const [userStakeByTypeEncoded, claimableRewardsEncoded] = await Promise.all([
-      this.vmQueryService.vmQuery(
-        this.apiConfigService.getDelegationContractAddress(),
-        'getUserStakeByType',
-        undefined,
-        [ publicKey ]
-      ),
-      this.vmQueryService.vmQuery(
-        this.apiConfigService.getDelegationContractAddress(),
-        'getClaimableRewards',
-        undefined,
-        [ publicKey ]
-      ),
-    ]);
+    const [userStakeByTypeEncoded, claimableRewardsEncoded] = await Promise.all(
+      [
+        this.vmQueryService.vmQuery(
+          this.apiConfigService.getDelegationContractAddress(),
+          'getUserStakeByType',
+          undefined,
+          [publicKey],
+        ),
+        this.vmQueryService.vmQuery(
+          this.apiConfigService.getDelegationContractAddress(),
+          'getClaimableRewards',
+          undefined,
+          [publicKey],
+        ),
+      ],
+    );
 
     const [
       userWithdrawOnlyStake,
@@ -85,5 +89,5 @@ export class DelegationLegacyService {
   numberDecode(encoded: string) {
     const hex = Buffer.from(encoded, 'base64').toString('hex');
     return BigInt(hex ? '0x' + hex : hex).toString();
-  };
+  }
 }

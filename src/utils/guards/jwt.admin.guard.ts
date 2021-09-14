@@ -3,18 +3,14 @@ import { ApiConfigService } from 'src/common/api.config.service';
 
 @Injectable()
 export class JwtAdminGuard implements CanActivate {
-  constructor(
-    private readonly apiConfigService: ApiConfigService
-  ) {}
+  constructor(private readonly apiConfigService: ApiConfigService) {}
 
-  async canActivate(
-    context: ExecutionContext,
-  ): Promise<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    let jwt = request.jwt;
+    const jwt = request.jwt;
 
-    let admins = this.apiConfigService.getSecurityAdmins();
+    const admins = this.apiConfigService.getSecurityAdmins();
     if (!admins) {
       return false;
     }

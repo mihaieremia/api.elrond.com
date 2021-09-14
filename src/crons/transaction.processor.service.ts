@@ -1,39 +1,40 @@
-import { Inject, Injectable, Logger } from "@nestjs/common";
-import { ClientProxy } from "@nestjs/microservices";
-import { Cron } from "@nestjs/schedule";
-import { MetricsService } from "src/endpoints/metrics/metrics.service";
-import { ShardService } from "src/endpoints/shards/shard.service";
-import { TransactionFilter } from "src/endpoints/transactions/entities/transaction.filter";
-import { TransactionService } from "src/endpoints/transactions/transaction.service";
-import { ApiConfigService } from "src/common/api.config.service";
-import { CachingService } from "src/common/caching.service";
-import { GatewayService } from "src/common/gateway.service";
-import { AddressUtils } from "src/utils/address.utils";
-import { PerformanceProfiler } from "src/utils/performance.profiler";
-import { EventsGateway } from "src/websockets/events.gateway";
-import { ShardTransaction } from "./entities/shard.transaction";
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
+import { Cron } from '@nestjs/schedule';
+import { MetricsService } from 'src/endpoints/metrics/metrics.service';
+import { ShardService } from 'src/endpoints/shards/shard.service';
+import { TransactionFilter } from 'src/endpoints/transactions/entities/transaction.filter';
+import { TransactionService } from 'src/endpoints/transactions/transaction.service';
+import { ApiConfigService } from 'src/common/api.config.service';
+import { CachingService } from 'src/common/caching.service';
+import { GatewayService } from 'src/common/gateway.service';
+import { AddressUtils } from 'src/utils/address.utils';
+import { PerformanceProfiler } from 'src/utils/performance.profiler';
+import { EventsGateway } from 'src/websockets/events.gateway';
+import { ShardTransaction } from './entities/shard.transaction';
 
 @Injectable()
 export class TransactionProcessorService {
-  isProcessing: boolean = false;
+  isProcessing = false;
   private readonly logger: Logger;
 
   constructor(
-      private readonly transactionService: TransactionService,
-      private readonly cachingService: CachingService,
-      private readonly eventsGateway: EventsGateway,
-      private readonly gatewayService: GatewayService,
-      private readonly apiConfigService: ApiConfigService,
-      private readonly metricsService: MetricsService,
-      @Inject('PUBSUB_SERVICE') private clientProxy: ClientProxy,
-      private readonly shardService: ShardService,
+    private readonly transactionService: TransactionService,
+    private readonly cachingService: CachingService,
+    private readonly eventsGateway: EventsGateway,
+    private readonly gatewayService: GatewayService,
+    private readonly apiConfigService: ApiConfigService,
+    private readonly metricsService: MetricsService,
+    @Inject('PUBSUB_SERVICE') private clientProxy: ClientProxy,
+    private readonly shardService: ShardService,
   ) {
     this.logger = new Logger(TransactionProcessorService.name);
   }
 
   @Cron('*/1 * * * * *')
   async handleNewTransactions() {
-    let isCronActive = this.apiConfigService.getIsTransactionProcessorCronActive();
+    const isCronActive =
+      this.apiConfigService.getIsTransactionProcessorCronActive();
     if (!isCronActive) {
       return;
     }
@@ -45,7 +46,7 @@ export class TransactionProcessorService {
     this.isProcessing = true;
     try {
       let profiler = new PerformanceProfiler('Getting new transactions');
-      let newTransactions = await this.getNewTransactions();
+      const newTransactions = await this.getNewTransactions();
       profiler.stop();
       if (newTransactions.length === 0) {
         return;
@@ -55,9 +56,9 @@ export class TransactionProcessorService {
 
       this.logger.log(`New transactions: ${newTransactions.length}`);
 
-      let allInvalidatedKeys = [];
+      const allInvalidatedKeys = [];
 
-      for (let transaction of newTransactions) {
+      for (const transaction of newTransactions) {
         // this.logger.log(`Transferred ${transaction.value} from ${transaction.sender} to ${transaction.receiver}`);
 
         if (!AddressUtils.isSmartContractAddress(transaction.sender)) {
@@ -67,23 +68,28 @@ export class TransactionProcessorService {
         if (!AddressUtils.isSmartContractAddress(transaction.receiver)) {
           this.eventsGateway.onAccountBalanceChanged(transaction.receiver);
         }
-        
-        let invalidatedTransactionKeys = await this.cachingService.tryInvalidateTransaction(transaction);
-        let invalidatedTokenKeys = await this.cachingService.tryInvalidateTokens(transaction);
-        let invalidatedTokenProperties = await this.cachingService.tryInvalidateTokenProperties(transaction);
-        let invalidatedTokensOnAccountKeys = await this.cachingService.tryInvalidateTokensOnAccount(transaction);
-        let invalidatedTokenBalancesKeys = await this.cachingService.tryInvalidateTokenBalance(transaction);
+
+        const invalidatedTransactionKeys =
+          await this.cachingService.tryInvalidateTransaction(transaction);
+        const invalidatedTokenKeys =
+          await this.cachingService.tryInvalidateTokens(transaction);
+        const invalidatedTokenProperties =
+          await this.cachingService.tryInvalidateTokenProperties(transaction);
+        const invalidatedTokensOnAccountKeys =
+          await this.cachingService.tryInvalidateTokensOnAccount(transaction);
+        const invalidatedTokenBalancesKeys =
+          await this.cachingService.tryInvalidateTokenBalance(transaction);
 
         allInvalidatedKeys.push(
-          ...invalidatedTransactionKeys, 
-          ...invalidatedTokenKeys, 
+          ...invalidatedTransactionKeys,
+          ...invalidatedTokenKeys,
           ...invalidatedTokenProperties,
-          ...invalidatedTokensOnAccountKeys, 
+          ...invalidatedTokensOnAccountKeys,
           ...invalidatedTokenBalancesKeys,
         );
       }
 
-      let uniqueInvalidatedKeys = [...new Set(allInvalidatedKeys)];
+      const uniqueInvalidatedKeys = [...new Set(allInvalidatedKeys)];
       if (uniqueInvalidatedKeys.length > 0) {
         this.clientProxy.emit('deleteCacheKeys', uniqueInvalidatedKeys);
       }
@@ -95,11 +101,12 @@ export class TransactionProcessorService {
   }
 
   async getNewTransactions(): Promise<ShardTransaction[]> {
-    let currentNonces = await this.shardService.getCurrentNonces();
-    let lastProcessedNonces = await this.shardService.getLastProcessedNonces();
+    const currentNonces = await this.shardService.getCurrentNonces();
+    const lastProcessedNonces =
+      await this.shardService.getLastProcessedNonces();
 
-    for (let [index, shardId] of this.shardService.shards.entries()) {
-      let lastProcessedNonce = lastProcessedNonces[index];
+    for (const [index, shardId] of this.shardService.shards.entries()) {
+      const lastProcessedNonce = lastProcessedNonces[index];
       if (!lastProcessedNonce) {
         continue;
       }
@@ -109,7 +116,7 @@ export class TransactionProcessorService {
 
     let allTransactions: ShardTransaction[] = [];
 
-    for (let [index, shardId] of this.shardService.shards.entries()) {
+    for (const [index, shardId] of this.shardService.shards.entries()) {
       let currentNonce = currentNonces[index];
       let lastProcessedNonce = lastProcessedNonces[index];
 
@@ -130,7 +137,8 @@ export class TransactionProcessorService {
       }
 
       // maximum last number of nonces, makes no sense to look too far behind
-      let maxLookBehind = this.apiConfigService.getTransactionProcessorMaxLookBehind();
+      const maxLookBehind =
+        this.apiConfigService.getTransactionProcessorMaxLookBehind();
       if (currentNonce > lastProcessedNonce + maxLookBehind) {
         lastProcessedNonce = currentNonce - maxLookBehind;
       }
@@ -141,7 +149,7 @@ export class TransactionProcessorService {
       }
 
       for (let nonce = lastProcessedNonce + 1; nonce <= currentNonce; nonce++) {
-        let transactions = await this.getShardTransactions(shardId, nonce);
+        const transactions = await this.getShardTransactions(shardId, nonce);
 
         allTransactions = allTransactions.concat(...transactions);
       }
@@ -154,17 +162,22 @@ export class TransactionProcessorService {
     return allTransactions;
   }
 
-  async getShardTransactions(shardId: number, nonce: number): Promise<ShardTransaction[]> {
-    let result = await this.gatewayService.get(`block/${shardId}/by-nonce/${nonce}?withTxs=true`);
+  async getShardTransactions(
+    shardId: number,
+    nonce: number,
+  ): Promise<ShardTransaction[]> {
+    const result = await this.gatewayService.get(
+      `block/${shardId}/by-nonce/${nonce}?withTxs=true`,
+    );
 
     if (result.block.miniBlocks === undefined) {
       return [];
     }
 
-    let transactions: ShardTransaction[] = result.block.miniBlocks
+    const transactions: ShardTransaction[] = result.block.miniBlocks
       .selectMany((x: any) => x.transactions)
       .map((item: any) => {
-        let transaction = new ShardTransaction();
+        const transaction = new ShardTransaction();
         transaction.data = item.data;
         transaction.sender = item.sender;
         transaction.receiver = item.receiver;
@@ -179,19 +192,21 @@ export class TransactionProcessorService {
       });
 
     // we only care about transactions that are finalized on the destinationShard
-    return transactions.filter(x => x.destinationShard === shardId);
+    return transactions.filter((x) => x.destinationShard === shardId);
   }
 
   async getLastTimestamp() {
-    let transactionQuery = new TransactionFilter();
+    const transactionQuery = new TransactionFilter();
     transactionQuery.size = 1;
 
-    let transactions = await this.transactionService.getTransactions(transactionQuery);
+    const transactions = await this.transactionService.getTransactions(
+      transactionQuery,
+    );
     return transactions[0].timestamp;
   }
 
   async getTransactions(timestamp: number) {
-    let transactionQuery = new TransactionFilter();
+    const transactionQuery = new TransactionFilter();
     transactionQuery.after = timestamp;
     transactionQuery.size = 1000;
 

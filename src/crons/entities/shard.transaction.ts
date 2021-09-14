@@ -1,15 +1,15 @@
-import { BinaryUtils } from "src/utils/binary.utils";
+import { BinaryUtils } from 'src/utils/binary.utils';
 
 export class ShardTransaction {
-  value: string = '';
+  value = '';
   data: string | undefined;
-  hash: string = '';
-  sender: string = '';
-  receiver: string = '';
-  status: string = '';
-  sourceShard: number = 0;
-  destinationShard: number = 0;
-  nonce: number = 0;
+  hash = '';
+  sender = '';
+  receiver = '';
+  status = '';
+  sourceShard = 0;
+  destinationShard = 0;
+  nonce = 0;
 
   private dataDecoded: string | undefined;
   private getDataDecoded(): string | undefined {
@@ -25,7 +25,7 @@ export class ShardTransaction {
   private dataFunctionName: string | undefined;
   public getDataFunctionName(): string | undefined {
     if (!this.dataFunctionName) {
-      let decoded = this.getDataDecoded();
+      const decoded = this.getDataDecoded();
       if (decoded) {
         this.dataFunctionName = decoded.split('@')[0];
       }
@@ -37,7 +37,7 @@ export class ShardTransaction {
   private dataArgs: string[] | undefined;
   public getDataArgs(): string[] | undefined {
     if (!this.dataArgs) {
-      let decoded = this.getDataDecoded();
+      const decoded = this.getDataDecoded();
       if (decoded) {
         this.dataArgs = decoded.split('@').splice(1);
       }

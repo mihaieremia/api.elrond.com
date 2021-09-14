@@ -1,15 +1,15 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class Queue {
-    @ApiProperty()
-    bls: string = '';
+  @ApiProperty()
+  bls = '';
 
-    @ApiProperty()
-    nonce: number = 0;
+  @ApiProperty()
+  nonce = 0;
 
-    @ApiProperty()
-    rewardsAddress: string = '';
+  @ApiProperty()
+  rewardsAddress = '';
 
-    @ApiProperty()
-    position: number = 0;
+  @ApiProperty()
+  position = 0;
 }

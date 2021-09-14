@@ -1,13 +1,11 @@
-import { Controller, Get } from "@nestjs/common";
-import { ApiResponse, ApiTags } from "@nestjs/swagger";
-import { StakeService } from "./stake.service";
+import { Controller, Get } from '@nestjs/common';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { StakeService } from './stake.service';
 
 @Controller()
 @ApiTags('stake')
 export class StakeController {
-  constructor(
-    private readonly stakeService: StakeService
-  ) {}
+  constructor(private readonly stakeService: StakeService) {}
 
   @Get('/stake')
   @ApiResponse({

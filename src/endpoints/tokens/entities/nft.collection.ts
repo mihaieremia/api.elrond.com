@@ -1,48 +1,48 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class NftCollection {
   @ApiProperty()
-  collection: string = '';
+  collection = '';
 
   @ApiProperty()
-  name: string = '';
+  name = '';
 
   @ApiProperty()
-  ticker: string = '';
+  ticker = '';
 
   @ApiProperty()
-  issuer: string = '';
+  issuer = '';
 
   @ApiProperty()
-  timestamp: number = 0;
+  timestamp = 0;
 
   @ApiProperty()
-  canUpgrade: boolean = false;
+  canUpgrade = false;
 
   @ApiProperty()
-  canMint: boolean = false;
+  canMint = false;
 
   @ApiProperty()
-  canBurn: boolean = false;
+  canBurn = false;
 
   @ApiProperty()
-  canChangeOwner: boolean = false;
+  canChangeOwner = false;
 
   @ApiProperty()
-  canPause: boolean = false;
+  canPause = false;
 
   @ApiProperty()
-  canFreeze: boolean = false;
-  
+  canFreeze = false;
+
   @ApiProperty()
-  canWipe: boolean = false;
-  
+  canWipe = false;
+
   @ApiProperty()
-  canAddSpecialRoles: boolean = false;
-  
+  canAddSpecialRoles = false;
+
   @ApiProperty()
-  canTransferNFTCreateRole: boolean = false;
-  
+  canTransferNFTCreateRole = false;
+
   @ApiProperty()
-  NFTCreateStopped: boolean = false;
+  NFTCreateStopped = false;
 }

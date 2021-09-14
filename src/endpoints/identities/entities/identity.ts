@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class Identity {
   @ApiProperty()
@@ -26,10 +26,10 @@ export class Identity {
   topUp?: string;
 
   @ApiProperty()
-  locked: string = '0';
+  locked = '0';
 
   @ApiProperty()
-  distribution?: { [ index: string ]: number } = {};
+  distribution?: { [index: string]: number } = {};
 
   @ApiProperty()
   providers?: string[];

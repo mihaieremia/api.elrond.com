@@ -1,15 +1,15 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class WaitingList {
   @ApiProperty()
-  address: string = '';
-  
-  @ApiProperty()
-  nonce: number = 0;
+  address = '';
 
   @ApiProperty()
-  rank: number = 0;
+  nonce = 0;
 
   @ApiProperty()
-  value: string = '';
+  rank = 0;
+
+  @ApiProperty()
+  value = '';
 }

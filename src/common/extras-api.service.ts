@@ -1,7 +1,10 @@
 import { forwardRef, Inject, Logger, Injectable } from '@nestjs/common';
 import { ApiConfigService } from './api.config.service';
 import { ApiService } from './api.service';
-import { ExtrasApiScamTransactionResult, ExtrasApiTransactionMinInfoDto } from './external-dtos/extras-api';
+import {
+  ExtrasApiScamTransactionResult,
+  ExtrasApiTransactionMinInfoDto,
+} from './external-dtos/extras-api';
 
 @Injectable()
 export class ExtrasApiService {
@@ -10,7 +13,7 @@ export class ExtrasApiService {
   constructor(
     private readonly apiConfigService: ApiConfigService,
     @Inject(forwardRef(() => ApiService))
-    private readonly apiService: ApiService
+    private readonly apiService: ApiService,
   ) {
     this.logger = new Logger(ExtrasApiService.name);
   }
@@ -24,15 +27,23 @@ export class ExtrasApiService {
     return await this.apiService.post(`${url}/${route}`, data);
   }
 
-  async checkScamTransaction(transactionMinInfoDto: ExtrasApiTransactionMinInfoDto): Promise<ExtrasApiScamTransactionResult | null> {
+  async checkScamTransaction(
+    transactionMinInfoDto: ExtrasApiTransactionMinInfoDto,
+  ): Promise<ExtrasApiScamTransactionResult | null> {
     try {
-      let result = await this.post('transactions/check-scam', transactionMinInfoDto);
+      const result = await this.post(
+        'transactions/check-scam',
+        transactionMinInfoDto,
+      );
       return result?.data;
     } catch (err) {
-      this.logger.error('An error occurred while calling check scam transaction API.', {
-        exception: err.toString(),
-        txInfo: transactionMinInfoDto,
-      });
+      this.logger.error(
+        'An error occurred while calling check scam transaction API.',
+        {
+          exception: err.toString(),
+          txInfo: transactionMinInfoDto,
+        },
+      );
       return null;
     }
   }

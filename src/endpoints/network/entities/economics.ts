@@ -1,14 +1,14 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class Economics {
   @ApiProperty()
-  totalSupply: number = 0;
+  totalSupply = 0;
 
   @ApiProperty()
-  circulatingSupply: number = 0;
-  
+  circulatingSupply = 0;
+
   @ApiProperty()
-  staked: number = 0;
+  staked = 0;
 
   @ApiProperty()
   price: number | undefined = undefined;
@@ -17,11 +17,11 @@ export class Economics {
   marketCap: number | undefined = undefined;
 
   @ApiProperty()
-  apr: number = 0;
+  apr = 0;
 
   @ApiProperty()
-  topUpApr: number = 0;
+  topUpApr = 0;
 
   @ApiProperty()
-  baseApr: number = 0;
+  baseApr = 0;
 }

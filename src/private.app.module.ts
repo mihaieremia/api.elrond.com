@@ -4,15 +4,8 @@ import { MetricsController } from './endpoints/metrics/metrics.controller';
 import { PublicAppModule } from './public.app.module';
 
 @Module({
-  imports: [
-    PublicAppModule
-  ],
-  controllers: [
-    MetricsController,
-    CacheController
-  ],
-  providers: [
-    
-  ],
+  imports: [PublicAppModule],
+  controllers: [MetricsController, CacheController],
+  providers: [],
 })
 export class PrivateAppModule {}

@@ -8,6 +8,6 @@ export class FileUtils {
   }
 
   static parseJSONFile(source: string) {
-    return JSON.parse(readFileSync(source, {encoding:'utf8'}));
+    return JSON.parse(readFileSync(source, { encoding: 'utf8' }));
   }
 }

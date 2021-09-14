@@ -1,4 +1,4 @@
-import { AbstractQuery } from "./abstract.query";
+import { AbstractQuery } from './abstract.query';
 
 export class ExistsQuery extends AbstractQuery {
   constructor(private readonly key: string) {

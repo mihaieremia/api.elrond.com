@@ -1,11 +1,11 @@
-import { Injectable } from "@nestjs/common";
-import { ApiConfigService } from "src/common/api.config.service";
-import { CachingService } from "src/common/caching.service";
-import { AddressUtils } from "src/utils/address.utils";
-import { Constants } from "src/utils/constants";
-import { NumberUtils } from "src/utils/number.utils";
-import { VmQueryService } from "../vm.query/vm.query.service";
-import { WaitingList } from "./entities/waiting.list";
+import { Injectable } from '@nestjs/common';
+import { ApiConfigService } from 'src/common/api.config.service';
+import { CachingService } from 'src/common/caching.service';
+import { AddressUtils } from 'src/utils/address.utils';
+import { Constants } from 'src/utils/constants';
+import { NumberUtils } from 'src/utils/number.utils';
+import { VmQueryService } from '../vm.query/vm.query.service';
+import { WaitingList } from './entities/waiting.list';
 
 @Injectable()
 export class WaitingListService {
@@ -20,14 +20,14 @@ export class WaitingListService {
   }
 
   async getWaitingListForAddress(address: string): Promise<WaitingList[]> {
-    let fullWaitingList = await this.getFullWaitingList();
+    const fullWaitingList = await this.getFullWaitingList();
 
-    return fullWaitingList.filter(x => x.address === address);
+    return fullWaitingList.filter((x) => x.address === address);
   }
 
   async getWaitingListCount(): Promise<number> {
-    let fullWaitingList = await this.getFullWaitingList();
-    
+    const fullWaitingList = await this.getFullWaitingList();
+
     return fullWaitingList.length;
   }
 
@@ -35,7 +35,7 @@ export class WaitingListService {
     return await this.cachingService.getOrSetCache(
       'waiting-list',
       async () => await this.getFullWaitingListRaw(),
-      Constants.oneMinute() * 5
+      Constants.oneMinute() * 5,
     );
   }
 
@@ -44,28 +44,36 @@ export class WaitingListService {
       this.apiConfigService.getDelegationContractAddress(),
       'getFullWaitingList',
       undefined,
-      []
+      [],
     );
 
-    const fullWaitingList: WaitingList[] = fullWaitingListEncoded.reduce((result, _, index, array) => {
-      if (index % 3 === 0) {
-        const [publicKeyEncoded, valueEncoded, nonceEncoded] = array.slice(index, index + 3);
+    const fullWaitingList: WaitingList[] = fullWaitingListEncoded.reduce(
+      (result, _, index, array) => {
+        if (index % 3 === 0) {
+          const [publicKeyEncoded, valueEncoded, nonceEncoded] = array.slice(
+            index,
+            index + 3,
+          );
 
-        const publicKey = Buffer.from(publicKeyEncoded, 'base64').toString('hex');
-        const address = AddressUtils.bech32Encode(publicKey);
-        const value = NumberUtils.numberDecode(valueEncoded);
-        const nonce = parseInt(NumberUtils.numberDecode(nonceEncoded));
+          const publicKey = Buffer.from(publicKeyEncoded, 'base64').toString(
+            'hex',
+          );
+          const address = AddressUtils.bech32Encode(publicKey);
+          const value = NumberUtils.numberDecode(valueEncoded);
+          const nonce = parseInt(NumberUtils.numberDecode(nonceEncoded));
 
-        let waitingList: WaitingList = { address, value, nonce, rank: 0 };
+          const waitingList: WaitingList = { address, value, nonce, rank: 0 };
 
-        // @ts-ignore
-        result.push(waitingList);
-      }
+          // @ts-ignore
+          result.push(waitingList);
+        }
 
-      return result;
-    }, []);
+        return result;
+      },
+      [],
+    );
 
-    for (let [index, waitingListItem] of fullWaitingList.entries()) {
+    for (const [index, waitingListItem] of fullWaitingList.entries()) {
       waitingListItem.rank = index + 1;
     }
 

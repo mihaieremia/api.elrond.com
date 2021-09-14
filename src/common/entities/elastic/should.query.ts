@@ -1,4 +1,4 @@
-import { AbstractQuery } from "./abstract.query";
+import { AbstractQuery } from './abstract.query';
 
 export class ShouldQuery extends AbstractQuery {
   constructor(private readonly queries: AbstractQuery[]) {
@@ -6,10 +6,10 @@ export class ShouldQuery extends AbstractQuery {
   }
 
   getQuery(): any {
-    return { 
+    return {
       bool: {
-        should: this.queries.map(query => query.getQuery())
-      }
+        should: this.queries.map((query) => query.getQuery()),
+      },
     };
   }
 }

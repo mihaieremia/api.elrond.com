@@ -1,33 +1,33 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class TransactionCreate {
-    @ApiProperty()
-    chainId: string = '';
+  @ApiProperty()
+  chainId = '';
 
-    @ApiProperty()
-    data: string = '';
+  @ApiProperty()
+  data = '';
 
-    @ApiProperty()
-    gasLimit: number = 0;
+  @ApiProperty()
+  gasLimit = 0;
 
-    @ApiProperty()
-    gasPrice: number = 0;
+  @ApiProperty()
+  gasPrice = 0;
 
-    @ApiProperty()
-    nonce: number = 0;
+  @ApiProperty()
+  nonce = 0;
 
-    @ApiProperty()
-    receiver: string = '';
+  @ApiProperty()
+  receiver = '';
 
-    @ApiProperty()
-    sender: string = '';
+  @ApiProperty()
+  sender = '';
 
-    @ApiProperty()
-    signature: string = '';
+  @ApiProperty()
+  signature = '';
 
-    @ApiProperty()
-    value: string = '';
-    
-    @ApiProperty()
-    version: number = 0;
+  @ApiProperty()
+  value = '';
+
+  @ApiProperty()
+  version = 0;
 }

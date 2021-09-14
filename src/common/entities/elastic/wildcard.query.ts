@@ -1,9 +1,6 @@
-import { AbstractQuery } from "./abstract.query";
+import { AbstractQuery } from './abstract.query';
 export class WildcardQuery extends AbstractQuery {
-  constructor(
-    private readonly key: string,
-    private readonly value: string
-  ) {
+  constructor(private readonly key: string, private readonly value: string) {
     super();
   }
 

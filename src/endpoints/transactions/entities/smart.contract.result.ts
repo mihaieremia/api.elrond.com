@@ -1,46 +1,46 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { TransactionLog } from "./transaction.log";
+import { ApiProperty } from '@nestjs/swagger';
+import { TransactionLog } from './transaction.log';
 
 export class SmartContractResult {
-    @ApiProperty()
-    hash: string = '';
+  @ApiProperty()
+  hash = '';
 
-    @ApiProperty()
-    nonce: number = 0;
+  @ApiProperty()
+  nonce = 0;
 
-    @ApiProperty()
-    gasLimit: number = 0;
+  @ApiProperty()
+  gasLimit = 0;
 
-    @ApiProperty()
-    gasPrice: number = 0;
+  @ApiProperty()
+  gasPrice = 0;
 
-    @ApiProperty()
-    value: string = '';
+  @ApiProperty()
+  value = '';
 
-    @ApiProperty()
-    sender: string = '';
+  @ApiProperty()
+  sender = '';
 
-    @ApiProperty()
-    receiver: string = '';
+  @ApiProperty()
+  receiver = '';
 
-    @ApiProperty()
-    relayedValue: string = '';
+  @ApiProperty()
+  relayedValue = '';
 
-    @ApiProperty()
-    data: string = '';
+  @ApiProperty()
+  data = '';
 
-    @ApiProperty()
-    prevTxHash: string = '';
+  @ApiProperty()
+  prevTxHash = '';
 
-    @ApiProperty()
-    originalTxHash: string = '';
+  @ApiProperty()
+  originalTxHash = '';
 
-    @ApiProperty()
-    callType: string = '';
+  @ApiProperty()
+  callType = '';
 
-    @ApiProperty({ type: TransactionLog })
-    logs: TransactionLog | undefined = undefined;
+  @ApiProperty({ type: TransactionLog })
+  logs: TransactionLog | undefined = undefined;
 
-    @ApiProperty()
-    returnMessage: string | undefined = undefined;
+  @ApiProperty()
+  returnMessage: string | undefined = undefined;
 }

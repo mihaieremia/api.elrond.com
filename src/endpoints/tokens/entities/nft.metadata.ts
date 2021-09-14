@@ -1,6 +1,6 @@
 export class NftMetadata {
-  description: string = '';
-  fileType: string = '';
-  fileUri: string = '';
-  fileName: string = '';
+  description = '';
+  fileType = '';
+  fileUri = '';
+  fileName = '';
 }

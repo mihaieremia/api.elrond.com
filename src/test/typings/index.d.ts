@@ -2,7 +2,7 @@ export {};
 declare global {
   namespace jest {
     interface Matchers<R> {
-        toHaveStructure(keys: any): CustomMatcherResult;
+      toHaveStructure(keys: any): CustomMatcherResult;
     }
   }
 }

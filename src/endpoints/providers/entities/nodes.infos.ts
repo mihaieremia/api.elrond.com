@@ -1,15 +1,15 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 
 export class NodesInfos {
   @ApiProperty()
-  numNodes: number = 0;
+  numNodes = 0;
 
   @ApiProperty()
-  stake: string = '';
+  stake = '';
 
   @ApiProperty()
-  topUp: string = '';
+  topUp = '';
 
   @ApiProperty()
-  locked: string = '';
+  locked = '';
 }

@@ -1,4 +1,4 @@
-import { ApiUtils } from "./api.utils";
+import { ApiUtils } from './api.utils';
 
 export class TokenUtils {
   static isEsdt(tokenIdentifier: string) {
@@ -7,7 +7,7 @@ export class TokenUtils {
 
   static canBool(string: string) {
     return string.split('-').pop() === 'true';
-  };
+  }
 
   static computeNftUri(uri: string, prefix: string) {
     return ApiUtils.replaceUri(uri, 'https://ipfs.io/ipfs', prefix);
