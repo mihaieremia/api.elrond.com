@@ -11,11 +11,15 @@ export class AccountDetailed extends Account {
   @ApiProperty({ description: 'The hash of the root node' })
   rootHash = '';
 
-  @ApiProperty({
-    description: 'The number of transactions performed on this account',
-  })
-  txCount = 0;
+    @ApiProperty({ description: 'The number of transactions performed on this account' })
+    txCount: number = 0;
+    
+    @ApiProperty()
+    username: string = '';
 
-  @ApiProperty()
-  username = '';
+    @ApiProperty()
+    developerReward: string = '';
+
+    @ApiProperty()
+    ownerAddress: string = '';
 }

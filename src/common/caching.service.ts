@@ -443,9 +443,9 @@ export class CachingService {
 
     const transactionFuncName = transaction.getDataFunctionName();
 
-    // if transaction target is ESDT SC and functionName is "issue", kick out 'allTokens' key
+    // if transaction target is ESDT SC and functionName is "issue", kick out 'allEsdtTokens' key
     if (transactionFuncName === 'issue') {
-      return await this.deleteInCache('allTokens');
+      return await this.deleteInCache('allEsdtTokens');
     }
 
     return [];
@@ -543,12 +543,9 @@ export class CachingService {
       }
     }
 
-    // if transaction target is ESDT SC and functionName is "issue", kick out 'allTokens' key
-    if (
-      transaction.receiver === this.configService.getEsdtContractAddress() &&
-      transactionFuncName === 'issue'
-    ) {
-      this.deleteInCache('allTokens');
+    // if transaction target is ESDT SC and functionName is "issue", kick out 'allEsdtTokens' key
+    if (transaction.receiver === this.configService.getEsdtContractAddress() && transactionFuncName === 'issue') {
+      this.deleteInCache('allEsdtTokens');
     }
 
     return keys;

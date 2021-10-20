@@ -1,18 +1,17 @@
-import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
-import { ApiConfigService } from 'src/common/api.config.service';
-import { CachingService } from 'src/common/caching.service';
-import { VmQueryService } from 'src/endpoints/vm.query/vm.query.service';
-import { Provider } from 'src/endpoints/providers/entities/provider';
-import { ProviderConfig } from './entities/provider.config';
-import { NodeService } from '../nodes/node.service';
-import { ProviderFilter } from 'src/endpoints/providers/entities/provider.filter';
-import { ApiService } from 'src/common/api.service';
-import { KeybaseState } from 'src/common/entities/keybase.state';
-import { KeybaseService } from 'src/common/keybase.service';
-import { Constants } from 'src/utils/constants';
-import { AddressUtils } from 'src/utils/address.utils';
-import { NodesInfos } from './entities/nodes.infos';
-import { DelegationData } from './entities/delegation.data';
+import { forwardRef, Inject, Injectable, Logger } from "@nestjs/common";
+import { ApiConfigService } from "src/common/api.config.service";
+import { CachingService } from "src/common/caching.service";
+import { VmQueryService } from "src/endpoints/vm.query/vm.query.service";
+import { Provider } from "src/endpoints/providers/entities/provider";
+import { ProviderConfig } from "./entities/provider.config";
+import { NodeService } from "../nodes/node.service";
+import { ProviderFilter } from "src/endpoints/providers/entities/provider.filter";
+import { ApiService } from "src/common/api.service";
+import { KeybaseService } from "src/common/keybase.service";
+import { Constants } from "src/utils/constants";
+import { AddressUtils } from "src/utils/address.utils";
+import { NodesInfos } from "./entities/nodes.infos";
+import { DelegationData } from "./entities/delegation.data";
 
 @Injectable()
 export class ProviderService {
@@ -125,9 +124,7 @@ export class ProviderService {
       return bSort - aSort;
     });
 
-    providers = providers.filter(
-      (provider) => provider.numNodes > 0 && provider.stake !== '0',
-    );
+    providers = providers.filter(provider => provider.numNodes > 0 && provider.stake !== '0');
 
     return providers;
   }
@@ -200,15 +197,8 @@ export class ProviderService {
       };
     });
 
-    const providerKeybases = await this.cachingService.getOrSetCache<{
-      [key: string]: KeybaseState;
-    }>(
-      'providerKeybases',
-      async () =>
-        await this.keybaseService.confirmKeybaseProvidersAgainstKeybasePub(),
-      Constants.oneHour(),
-    );
-
+    let providerKeybases = await this.keybaseService.getCachedNodesAndProvidersKeybases();
+    
     if (providerKeybases) {
       for (const providerAddress of providers) {
         const providerInfo = providerKeybases[providerAddress];
@@ -304,15 +294,21 @@ export class ProviderService {
   }
 
   async getProviderMetadata(address: string) {
-    const response = await this.vmQueryService.vmQuery(address, 'getMetaData');
-
-    if (response && response.every((x) => x !== null)) {
+    const response = await this.vmQueryService.vmQuery(
+      address,
+      'getMetaData',
+    );
+  
+    if (response) {
       try {
-        const [name, website, identity] = response.map((base64) =>
-          Buffer.from(base64, 'base64').toString().trim().toLowerCase(),
-        );
-
-        return { name, website, identity, address };
+        const [name, website, identity] = response.map((base64) => {
+          if(base64) {
+            return Buffer.from(base64, 'base64').toString().trim().toLowerCase();
+          }
+          return "";
+        });
+    
+        return { name, website, identity }; 
       } catch (error) {
         this.logger.error(
           `Could not get provider metadata for address '${address}'`,

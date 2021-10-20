@@ -1,6 +1,13 @@
 import { AbstractQuery } from './abstract.query';
 export class WildcardQuery extends AbstractQuery {
-  buildQuery(key: string, value: any): any {
-    return { wildcard: { [key]: value } };
+  constructor(
+    private readonly key: string,
+    private readonly value: string
+  ) {
+    super();
+  }
+
+  getQuery(): any {
+    return { wildcard: { [this.key]: this.value } };
   }
 }

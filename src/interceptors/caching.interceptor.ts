@@ -27,7 +27,9 @@ export class CachingInterceptor implements NestInterceptor {
     const apiFunction =
       context.getClass().name + '.' + context.getHandler().name;
 
-    const cacheKey = this.getCacheKey(context);
+    this.metricsService.setPendingRequestsCount(Object.keys(this.pendingRequestsDictionary).length);
+
+    let cacheKey = this.getCacheKey(context);
     if (cacheKey) {
       const pendingRequest = this.pendingRequestsDictionary[cacheKey];
       if (pendingRequest) {
@@ -54,19 +56,23 @@ export class CachingInterceptor implements NestInterceptor {
         },
       );
 
-      return next.handle().pipe(
-        tap(async (result) => {
-          delete this.pendingRequestsDictionary[cacheKey ?? ''];
-          pendingRequestResolver(result);
+      return next
+        .handle()
+        .pipe(
+          tap(async (result) => {
+            delete this.pendingRequestsDictionary[cacheKey ?? ''];
+            pendingRequestResolver(result);
+            this.metricsService.setPendingRequestsCount(Object.keys(this.pendingRequestsDictionary).length);
 
           const ttl =
             await this.cachingService.getSecondsRemainingUntilNextRound();
 
-          await this.cachingService.setCacheLocal(cacheKey!, result, ttl);
-        }),
-        catchError((err) => {
-          delete this.pendingRequestsDictionary[cacheKey ?? ''];
-          pendingRequestReject(err);
+            await this.cachingService.setCacheLocal(cacheKey!!, result, ttl);
+          }),
+          catchError(err => {
+            delete this.pendingRequestsDictionary[cacheKey ?? ''];
+            pendingRequestReject(err);
+            this.metricsService.setPendingRequestsCount(Object.keys(this.pendingRequestsDictionary).length);
 
           return throwError(() => err);
         }),

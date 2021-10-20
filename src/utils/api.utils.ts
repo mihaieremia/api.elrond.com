@@ -1,9 +1,10 @@
 export class ApiUtils {
-  static mergeObjects(obj1: any, obj2: any) {
+  static mergeObjects<T>(obj1: T, obj2: any) {
     for (const key of Object.keys(obj2)) {
-      if (key in obj1) {
-        obj1[key] = obj2[key];
-      }
+        if (key in obj1) {
+            // @ts-ignore
+            obj1[key] = obj2[key];
+        }
     }
 
     return obj1;
@@ -35,4 +36,13 @@ export class ApiUtils {
 
     return obj;
   }
+
+  static replaceUri(uri: string, pattern: string, replacer: string): string {
+    if (uri.startsWith(pattern)) {
+      return uri.replace(pattern, replacer);
+    }
+
+    return uri;
+  }
+  
 }

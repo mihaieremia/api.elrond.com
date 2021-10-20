@@ -1,26 +1,43 @@
 import { Test } from "@nestjs/testing";
+import { ApiConfigService } from "src/common/api.config.service";
 import { CachingService } from "src/common/caching.service";
+import { KeybaseIdentity } from "src/common/entities/keybase.identity";
 import { KeybaseService } from "src/common/keybase.service";
 import { NodeService } from "src/endpoints/nodes/node.service";
 import { ProviderService } from "src/endpoints/providers/provider.service";
 import { PublicAppModule } from "src/public.app.module";
 import { Constants } from "src/utils/constants";
+import { FileUtils } from "src/utils/file.utils";
 import "../../utils/extensions/jest.extensions";
 
 export default class Initializer {
   private static cachingService: CachingService;
+  private static apiConfigService: ApiConfigService;
 
   static async initialize() {
     const publicAppModule = await Test.createTestingModule({
       imports: [PublicAppModule],
     }).compile();
 
-    Initializer.cachingService =
-      publicAppModule.get<CachingService>(CachingService);
+    Initializer.cachingService = publicAppModule.get<CachingService>(CachingService);
+    Initializer.apiConfigService = publicAppModule.get<ApiConfigService>(ApiConfigService);
     const keybaseService = publicAppModule.get<KeybaseService>(KeybaseService);
     const nodeService = publicAppModule.get<NodeService>(NodeService);
-    const providerService =
-      publicAppModule.get<ProviderService>(ProviderService);
+    const providerService = publicAppModule.get<ProviderService>(ProviderService);
+    
+    if (Initializer.apiConfigService.getMockKeybases()) {
+      jest.spyOn(KeybaseService.prototype, "confirmKeybase").mockImplementation(jest.fn(async() => true));
+      jest.spyOn(KeybaseService.prototype, "getProfile").mockImplementation(jest.fn(async() => new KeybaseIdentity()));
+    }
+
+    if (Initializer.apiConfigService.getMockNodes()) {
+      const MOCK_PATH = Initializer.apiConfigService.getMockPath();
+      const heartbeat = FileUtils.parseJSONFile(`${MOCK_PATH}heartbeat.mock.json`);
+      jest.spyOn(NodeService.prototype, "getHeartbeat").mockImplementation(jest.fn(async() => heartbeat));
+
+      const queue = FileUtils.parseJSONFile(`${MOCK_PATH}queue.mock.json`);
+      jest.spyOn(NodeService.prototype, "getQueue").mockImplementation(jest.fn(async() => queue));
+    }
 
     const isInitialized =
       await Initializer.cachingService.getCacheRemote<boolean>('isInitialized');
@@ -33,15 +50,7 @@ export default class Initializer {
       async () => await Initializer.cachingService.flushDb(),
     );
 
-    await this.fetch(
-      'nodeKeybases',
-      async () => await keybaseService.confirmKeybaseNodesAgainstKeybasePub(),
-    );
-    await this.fetch(
-      'providerKeybases',
-      async () =>
-        await keybaseService.confirmKeybaseProvidersAgainstKeybasePub(),
-    );
+    await this.fetch('keybases', async () => await keybaseService.confirmKeybasesAgainstCache());
     await this.fetch('nodes', async () => await nodeService.getAllNodesRaw());
     await this.fetch(
       'providers',

@@ -908,29 +908,17 @@ export class AccountService {
       const [
         txCount,
         {
-          account: { nonce, balance, code, codeHash, rootHash, username },
+          account: { nonce, balance, code, codeHash, rootHash, username, developerReward, ownerAddress },
         },
       ] = await Promise.all([
         this.elasticService.getCount('transactions', elasticQueryAdapter),
         this.gatewayService.get(`address/${address}`),
       ]);
 
-      const shard = AddressUtils.computeShard(
-        AddressUtils.bech32Decode(address),
-      );
-
-      const result = {
-        address,
-        nonce,
-        balance,
-        code,
-        codeHash,
-        rootHash,
-        txCount,
-        username,
-        shard,
-      };
-
+      let shard = AddressUtils.computeShard(AddressUtils.bech32Decode(address));
+  
+      let result: AccountDetailed = { address, nonce, balance, code, codeHash, rootHash, txCount, username, shard, developerReward, ownerAddress };
+  
       return result;
     } catch (error) {
       this.logger.error(error);
@@ -942,6 +930,14 @@ export class AccountService {
   }
 
   async getAccounts(queryPagination: QueryPagination): Promise<Account[]> {
+    return this.cachingService.getOrSetCache(
+      `accounts:${queryPagination.from}:${queryPagination.size}`,
+      async () => await this.getAccountsRaw(queryPagination),
+      Constants.oneMinute(),
+    );
+  }
+
+  async getAccountsRaw(queryPagination: QueryPagination): Promise<Account[]> {
     const elasticQueryAdapter: ElasticQuery = new ElasticQuery();
 
     const { from, size } = queryPagination;
@@ -1108,17 +1104,19 @@ export class AccountService {
         ),
       ]);
 
-      let queueSize = '0';
-      results.forEach(([result], index) => {
-        if (index === 0) {
-          queueSize = Buffer.from(result, 'base64').toString();
-        } else {
-          const [found] = data.filter(
-            (x: any) => x.blsKey === queued[index - 1],
-          );
+      let queueSize = '0'
 
-          found.queueIndex = Buffer.from(result, 'base64').toString();
-          found.queueSize = queueSize;
+      results.forEach((result, index) => {
+        const queueNode = [result] ? result : undefined;
+        if (queueNode) {
+          if (index === 0) {
+            queueSize = Buffer.from(queueNode, 'base64').toString();
+          } else {
+            const [found] = data.filter((x: any) => x.blsKey === queued[index - 1]);
+  
+            found.queueIndex = queueNode ? Buffer.from(queueNode, 'base64').toString() : '0';
+            found.queueSize = queueSize;
+          }
         }
       });
     }

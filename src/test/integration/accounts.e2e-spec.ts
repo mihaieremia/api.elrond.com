@@ -30,9 +30,18 @@ describe('Account Service', () => {
     const accounts = await accountService.getAccounts({ from: 0, size: 1 });
     expect(accounts).toHaveLength(1);
 
-    const account = accounts[0];
-    accountAddress = account.address;
-  });
+    describe('Accounts list', () => {
+        it('accounts should have address, shard and nonce', async () => {
+            const accountsList = await accountService.getAccounts({from: 0, size: 25});
+            for (let account of accountsList) {
+                expect(account).toHaveProperty('address');
+                expect(account).toHaveProperty('shard');
+                expect(account).toHaveProperty('nonce');
+            }
+        });
+
+        it(`should return a list with 25 accounts`, async () => {
+            const accountsList = await accountService.getAccounts({from: 0, size: 25});
 
   describe('Accounts list', () => {
     it(`should return a list with 25 accounts`, async () => {

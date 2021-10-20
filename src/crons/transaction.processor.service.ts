@@ -1,17 +1,18 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { Cron } from '@nestjs/schedule';
-import { MetricsService } from 'src/endpoints/metrics/metrics.service';
-import { ShardService } from 'src/endpoints/shards/shard.service';
-import { TransactionFilter } from 'src/endpoints/transactions/entities/transaction.filter';
-import { TransactionService } from 'src/endpoints/transactions/transaction.service';
-import { ApiConfigService } from 'src/common/api.config.service';
-import { CachingService } from 'src/common/caching.service';
-import { GatewayService } from 'src/common/gateway.service';
-import { AddressUtils } from 'src/utils/address.utils';
-import { PerformanceProfiler } from 'src/utils/performance.profiler';
-import { EventsGateway } from 'src/websockets/events.gateway';
-import { ShardTransaction } from './entities/shard.transaction';
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { ClientProxy } from "@nestjs/microservices";
+import { Cron } from "@nestjs/schedule";
+import { MetricsService } from "src/endpoints/metrics/metrics.service";
+import { ShardService } from "src/endpoints/shards/shard.service";
+import { TransactionFilter } from "src/endpoints/transactions/entities/transaction.filter";
+import { TransactionService } from "src/endpoints/transactions/transaction.service";
+import { ApiConfigService } from "src/common/api.config.service";
+import { CachingService } from "src/common/caching.service";
+import { GatewayService } from "src/common/gateway.service";
+import { AddressUtils } from "src/utils/address.utils";
+import { PerformanceProfiler } from "src/utils/performance.profiler";
+import { EventsGateway } from "src/websockets/events.gateway";
+import { ShardTransaction } from "./entities/shard.transaction";
+import { NodeService } from "src/endpoints/nodes/node.service";
 
 @Injectable()
 export class TransactionProcessorService {
@@ -19,14 +20,15 @@ export class TransactionProcessorService {
   private readonly logger: Logger;
 
   constructor(
-    private readonly transactionService: TransactionService,
-    private readonly cachingService: CachingService,
-    private readonly eventsGateway: EventsGateway,
-    private readonly gatewayService: GatewayService,
-    private readonly apiConfigService: ApiConfigService,
-    private readonly metricsService: MetricsService,
-    @Inject('PUBSUB_SERVICE') private clientProxy: ClientProxy,
-    private readonly shardService: ShardService,
+      private readonly transactionService: TransactionService,
+      private readonly cachingService: CachingService,
+      private readonly eventsGateway: EventsGateway,
+      private readonly gatewayService: GatewayService,
+      private readonly apiConfigService: ApiConfigService,
+      private readonly metricsService: MetricsService,
+      @Inject('PUBSUB_SERVICE') private clientProxy: ClientProxy,
+      private readonly shardService: ShardService,
+      private readonly nodeService: NodeService,
   ) {
     this.logger = new Logger(TransactionProcessorService.name);
   }
@@ -68,17 +70,13 @@ export class TransactionProcessorService {
         if (!AddressUtils.isSmartContractAddress(transaction.receiver)) {
           this.eventsGateway.onAccountBalanceChanged(transaction.receiver);
         }
-
-        const invalidatedTransactionKeys =
-          await this.cachingService.tryInvalidateTransaction(transaction);
-        const invalidatedTokenKeys =
-          await this.cachingService.tryInvalidateTokens(transaction);
-        const invalidatedTokenProperties =
-          await this.cachingService.tryInvalidateTokenProperties(transaction);
-        const invalidatedTokensOnAccountKeys =
-          await this.cachingService.tryInvalidateTokensOnAccount(transaction);
-        const invalidatedTokenBalancesKeys =
-          await this.cachingService.tryInvalidateTokenBalance(transaction);
+        
+        let invalidatedTransactionKeys = await this.cachingService.tryInvalidateTransaction(transaction);
+        let invalidatedTokenKeys = await this.cachingService.tryInvalidateTokens(transaction);
+        let invalidatedTokenProperties = await this.cachingService.tryInvalidateTokenProperties(transaction);
+        let invalidatedTokensOnAccountKeys = await this.cachingService.tryInvalidateTokensOnAccount(transaction);
+        let invalidatedTokenBalancesKeys = await this.cachingService.tryInvalidateTokenBalance(transaction);
+        let invalidatedOwnerKeys = await this.tryInvalidateOwner(transaction);
 
         allInvalidatedKeys.push(
           ...invalidatedTransactionKeys,
@@ -86,6 +84,7 @@ export class TransactionProcessorService {
           ...invalidatedTokenProperties,
           ...invalidatedTokensOnAccountKeys,
           ...invalidatedTokenBalancesKeys,
+          ...invalidatedOwnerKeys
         );
       }
 
@@ -98,6 +97,15 @@ export class TransactionProcessorService {
     } finally {
       this.isProcessing = false;
     }
+  }
+
+  async tryInvalidateOwner(transaction: ShardTransaction): Promise<string[]> {
+    let transactionFuncName = transaction.getDataFunctionName();
+    if (transactionFuncName !== 'mergeValidatorToDelegationWithWhitelist') {
+      return [];
+    }
+
+    return await this.nodeService.deleteOwnersForAddressInCache(transaction.sender);
   }
 
   async getNewTransactions(): Promise<ShardTransaction[]> {

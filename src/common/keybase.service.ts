@@ -1,18 +1,14 @@
-import {
-  forwardRef,
-  HttpStatus,
-  Inject,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
-import { NodeService } from 'src/endpoints/nodes/node.service';
-import { ProviderService } from 'src/endpoints/providers/provider.service';
-import { Constants } from 'src/utils/constants';
-import { ApiConfigService } from './api.config.service';
-import { ApiService } from './api.service';
-import { CachingService } from './caching.service';
-import { Keybase } from './entities/keybase';
-import { KeybaseState } from './entities/keybase.state';
+import { forwardRef, HttpStatus, Inject, Injectable, Logger } from "@nestjs/common";
+import { NodeService } from "src/endpoints/nodes/node.service";
+import { ProviderService } from "src/endpoints/providers/provider.service";
+import { ApiUtils } from "src/utils/api.utils";
+import { Constants } from "src/utils/constants";
+import { ApiConfigService } from "./api.config.service";
+import { ApiService } from "./api.service";
+import { CachingService } from "./caching.service";
+import { Keybase } from "./entities/keybase";
+import { KeybaseIdentity } from "./entities/keybase.identity";
+import { KeybaseState } from "./entities/keybase.state";
 
 @Injectable()
 export class KeybaseService {
@@ -30,138 +26,141 @@ export class KeybaseService {
     this.logger = new Logger(KeybaseService.name);
   }
 
-  async confirmKeybasesAgainstCache(): Promise<{
-    [key: string]: KeybaseState;
-  }> {
-    const nodes = await this.nodeService.getHeartbeat();
-
-    const keybasesArr: Keybase[] = nodes
-      .filter((node) => !!node.identity)
-      .map((node) => {
-        return { identity: node.identity, key: node.bls };
-      });
-
-    const keybaseGetPromises = keybasesArr.map((keybase) =>
-      this.cachingService.getCache<boolean>(`keybase:${keybase.key}`),
-    );
-    const keybaseGetResults = await Promise.all(keybaseGetPromises);
-
-    const confirmedKeybases = keybasesArr.zip<
-      boolean | undefined,
-      KeybaseState
-    >(keybaseGetResults, (first, second) => ({
-      identity: first.identity,
-      confirmed: second ?? false,
-    }));
-
-    const result: { [key: string]: KeybaseState } = {};
-    for (const [index, confirmedKeybase] of confirmedKeybases.entries()) {
-      const bls = keybasesArr[index].key;
-      if (bls !== undefined) {
-        result[bls] = confirmedKeybase;
-      }
-    }
-
-    return result;
-  }
-
-  async confirmKeybaseProvidersAgainstKeybasePub() {
+  private async getProvidersKeybasesRaw(): Promise<Keybase[]> {
     const providers = await this.providerService.getProviderAddresses();
+    const metadatas = await 
+      this.cachingService.batchProcess(
+        providers,
+        address => `providerMetadata:${address}`,
+        async address => await this.providerService.getProviderMetadata(address),
+        Constants.oneMinute() * 15,
+      );
 
-    const metadatas = await this.cachingService.batchProcess(
-      providers,
-      (address) => `providerMetadata:${address}`,
-      async (address) =>
-        await this.providerService.getProviderMetadata(address),
-      Constants.oneMinute() * 15,
-    );
-
-    const keybaseArr: Keybase[] = metadatas
+    const keybaseProvidersArr: Keybase[] = metadatas
       .map(({ identity }, index) => {
         return { identity: identity ?? '', key: providers[index] };
       })
       .filter(({ identity }) => !!identity);
 
-    const confirmedKeybases = await this.cachingService.batchProcess(
-      keybaseArr,
-      (keybase) => `keybase:${keybase.key}`,
-      async (keybase) => await this.confirmKeybase(keybase),
-      Constants.oneWeek(),
-      true,
-    );
-
-    const keybases: { [key: string]: KeybaseState } = {};
-
-    keybaseArr.forEach((keybase, index) => {
-      const keybaseState = new KeybaseState();
-      keybaseState.identity = keybase.identity;
-
-      if (confirmedKeybases[index]) {
-        keybaseState.confirmed = true;
-        // this.logger.log(`Confirmed keybase for identity ${keybase.identity} and key ${keybase.key}`);
-      } else {
-        keybaseState.confirmed = false;
-        this.logger.log(
-          `Unconfirmed keybase for identity ${keybase.identity} and key ${keybase.key}`,
-        );
-      }
-
-      keybases[keybase.key] = keybaseState;
-    });
-
-    return keybases;
+    return keybaseProvidersArr;
   }
 
-  async confirmKeybaseNodesAgainstKeybasePub() {
-    const nodes = await this.nodeService.getHeartbeat();
+  private async getNodesKeybasesRaw(): Promise<Keybase[]> {
+    let nodes = await this.nodeService.getHeartbeat();
 
-    const keybasesArr: Keybase[] = nodes
+    const keybasesNodesArr: Keybase[] = nodes
       .filter((node) => !!node.identity)
       .map((node) => {
         return { identity: node.identity, key: node.bls };
       });
 
-    const confirmedKeybases = await this.cachingService.batchProcess(
+    return keybasesNodesArr;
+  }
+
+  async confirmKeybasesAgainstCache(): Promise<{ [key: string]: KeybaseState }> {
+    const keybaseProvidersArr: Keybase[] = await this.getProvidersKeybasesRaw();
+    const keybasesNodesArr: Keybase[] = await this.getNodesKeybasesRaw();
+
+    const keybasesArr: Keybase[] = [...keybaseProvidersArr, ...keybasesNodesArr];
+
+    let keybaseGetPromises = keybasesArr.map(keybase => this.cachingService.getCache<boolean>(`keybase:${keybase.key}`));
+    let keybaseGetResults = await Promise.all(keybaseGetPromises);
+
+    let confirmedKeybases = keybasesArr.zip<(boolean | undefined), KeybaseState>(keybaseGetResults, (first, second) => ({ identity: first.identity, confirmed: second ?? false }));
+
+    let keybasesDict: { [key: string]: KeybaseState } = {};
+    for (let [index, confirmedKeybase] of confirmedKeybases.entries()) {
+      let key = keybasesArr[index].key;
+      if (key !== undefined) {
+        let keybaseState = ApiUtils.mergeObjects(new KeybaseState(), confirmedKeybase);
+        keybasesDict[key] = keybaseState;
+      }
+    }
+
+    return keybasesDict;
+  }
+
+  async getIdentitiesProfilesAgainstCache(): Promise<KeybaseIdentity[]> {
+    let nodes = await this.nodeService.getAllNodes();
+
+    let keys = [
+      ...new Set(nodes.filter(({ identity }) => !!identity).map(({ identity }) => identity)),
+    ].filter(x => x !== null).map(x => x ?? '');
+
+    let keybaseGetPromises = keys.map(key => this.cachingService.getCache<KeybaseIdentity>(`identityProfile:${key}`));
+    let keybaseGetResults = await Promise.all(keybaseGetPromises);
+
+    // @ts-ignore
+    return keybaseGetResults.filter(x => x !== undefined && x !== null);
+  }
+
+  async confirmKeybasesAgainstKeybasePub(): Promise<void> {
+    const isKeybaseUp = await this.isKeybaseUp();
+    if (!isKeybaseUp) {
+      return;
+    }
+
+    const keybaseProvidersArr: Keybase[] = await this.getProvidersKeybasesRaw();
+    const keybasesNodesArr: Keybase[] = await this.getNodesKeybasesRaw();
+
+    const keybasesArr: Keybase[] = [...keybaseProvidersArr, ...keybasesNodesArr];
+
+    await this.cachingService.batchProcess(
       keybasesArr,
       (keybase) => `keybase:${keybase.key}`,
       async (keybase) => await this.confirmKeybase(keybase),
       Constants.oneMonth() * 6,
       true,
     );
-
-    const keybases: { [key: string]: KeybaseState } = {};
-
-    keybasesArr.forEach((keybase, index) => {
-      const keybaseState = new KeybaseState();
-      keybaseState.identity = keybase.identity;
-
-      if (confirmedKeybases[index]) {
-        keybaseState.confirmed = true;
-        // this.logger.log(`Confirmed keybase for identity ${keybase.identity} and key ${keybase.key}`);
-      } else {
-        keybaseState.confirmed = false;
-        this.logger.log(
-          `Unconfirmed keybase for identity ${keybase.identity} and key ${keybase.key}`,
-        );
-      }
-
-      keybases[keybase.key] = keybaseState;
-    });
-
-    return keybases;
   }
 
-  async getCachedNodeKeybases(): Promise<
-    { [key: string]: KeybaseState } | undefined
-  > {
-    return await this.cachingService.getOrSetCache(
-      'nodeKeybases',
-      async () => await this.confirmKeybaseNodesAgainstKeybasePub(),
-      Constants.oneHour(),
+  async confirmIdentityProfilesAgainstKeybasePub(): Promise<void> {
+    const isKeybaseUp = await this.isKeybaseUp();
+    if (!isKeybaseUp) {
+      return;
+    }
+    
+    let nodes = await this.nodeService.getAllNodes();
+
+    let keys = [
+      ...new Set(nodes.filter(({ identity }) => !!identity).map(({ identity }) => identity)),
+    ].filter(x => x !== null).map(x => x ?? '');
+
+    await this.cachingService.batchProcess(
+      keys,
+      key => `identityProfile:${key}`,
+      async key => await this.getProfile(key),
+      Constants.oneMonth() * 6,
+      true
     );
   }
 
-  private async confirmKeybase(keybase: Keybase): Promise<boolean> {
+  async getCachedIdentityProfilesKeybases(): Promise<KeybaseIdentity[]> {
+    return await this.cachingService.getOrSetCache(
+      'identityProfilesKeybases',
+      async () => await this.getIdentitiesProfilesAgainstCache(),
+      Constants.oneHour()
+    );
+  }
+
+  async getCachedNodesAndProvidersKeybases(): Promise<{ [key: string]: KeybaseState } | undefined> {
+    return await this.cachingService.getOrSetCache(
+      'keybases',
+      async () => await this.confirmKeybasesAgainstCache(),
+      Constants.oneHour()
+    );
+  }
+
+  async isKeybaseUp(): Promise<boolean> {
+    try {
+      const { status } = await this.apiService.head('https://keybase.pub');
+      return status === HttpStatus.OK;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async confirmKeybase(keybase: Keybase): Promise<boolean> {
     if (!keybase.identity) {
       return false;
     }
@@ -174,40 +173,24 @@ export class KeybaseService {
               keybase.identity
             }/elrond/${this.apiConfigService.getNetwork()}/${keybase.key}`;
 
-      this.logger.log(
-        `Fetching keybase for identity ${keybase.identity} and key ${keybase.key}`,
-      );
+      const { status } = await this.apiService.head(url);
+      return status === HttpStatus.OK;
+    } catch (error: any) {
+      if (error.response?.status === HttpStatus.NOT_FOUND) {
+        this.logger.log(`Keybase not found for identity ${keybase.identity} and key ${keybase.key}`);
+        return false
+      }
 
-      const { status } = await this.apiService.head(
-        url,
-        undefined,
-        async (error: any) => {
-          if (error.response?.status === HttpStatus.NOT_FOUND) {
-            this.logger.log(
-              `Keybase not found for identity ${keybase.identity} and key ${keybase.key}`,
-            );
-            return true;
-          }
-
-          return false;
-        },
-      );
-
-      return status === 200;
-    } catch (error) {
-      return false;
+      const cachedConfirmation = await this.cachingService.getCache<boolean>(`keybase:${keybase.key}`);
+      return cachedConfirmation !== undefined && cachedConfirmation !== null ? cachedConfirmation : false;
     }
   }
 
-  async getProfile(identity: string) {
-    let value;
-
+  async getProfile(identity: string): Promise<KeybaseIdentity | null> {
     try {
-      const { status, data } = await this.apiService.get(
-        `https://keybase.io/_/api/1.0/user/lookup.json?username=${identity}`,
-      );
-
-      if (status === 200 && data.status.code === 0) {
+      const { status, data } = await this.apiService.get(`https://keybase.io/_/api/1.0/user/lookup.json?username=${identity}`);
+  
+      if (status === HttpStatus.OK && data.status.code === 0) {
         const { profile, pictures } = data.them;
 
         const { proofs_summary } = data.them || {};
@@ -221,8 +204,8 @@ export class KeybaseService {
             element['proof_type'] === 'dns' ||
             element['proof_type'] === 'generic_web_site',
         );
-
-        value = {
+  
+        return {
           identity,
           name: profile && profile.full_name ? profile.full_name : undefined,
           description: profile && profile.bio ? profile.bio : undefined,
@@ -236,13 +219,12 @@ export class KeybaseService {
             website && website.service_url ? website.service_url : undefined,
           location: profile && profile.location ? profile.location : undefined,
         };
-      } else {
-        value = false;
       }
-    } catch (error) {
-      value = false;
-    }
 
-    return value;
-  }
+      return null;
+    } catch (error: any) {
+      const cachedIdentityProfile = await this.cachingService.getCache<KeybaseIdentity>(`identityProfile:${identity}`)
+      return cachedIdentityProfile ? cachedIdentityProfile : null;
+    }
+  };
 }

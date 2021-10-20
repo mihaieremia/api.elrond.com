@@ -15,7 +15,7 @@ import { MetricsService } from './endpoints/metrics/metrics.service';
 import { CacheWarmerModule } from './cache.warmer.module';
 import { MicroserviceOptions } from '@nestjs/microservices';
 import { PubSubModule } from './pub.sub.module';
-import { Logger } from '@nestjs/common';
+import { Logger, NestInterceptor } from '@nestjs/common';
 import * as bodyParser from 'body-parser';
 import * as requestIp from 'request-ip';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -40,26 +40,28 @@ async function bootstrap() {
   const metricsService = publicApp.get<MetricsService>(MetricsService);
   const tokenAssetService = publicApp.get<TokenAssetService>(TokenAssetService);
 
-  httpAdapterHostService.httpAdapter.getHttpServer().keepAliveTimeout =
-    apiConfigService.getServerTimeout();
+  if (apiConfigService.getUseTracingFlag()) {
+    require('dd-trace').init();
+  }
+  
+  const httpServer = httpAdapterHostService.httpAdapter.getHttpServer();
+  httpServer.keepalive = true;
 
   await tokenAssetService.checkout();
 
-  publicApp.useGlobalInterceptors(
-    new LoggingInterceptor(metricsService),
-    new CachingInterceptor(
-      cachingService,
-      httpAdapterHostService,
-      metricsService,
-    ),
-    new FieldsInterceptor(),
-    new ExtractInterceptor(),
-    new CleanupInterceptor(),
-  );
-  const description = readFileSync(
-    join(__dirname, '..', 'docs', 'swagger.md'),
-    'utf8',
-  );
+  let globalInterceptors: NestInterceptor[] = [];
+  globalInterceptors.push(new LoggingInterceptor(metricsService));
+
+  if (apiConfigService.getUseRequestCachingFlag()) {
+    globalInterceptors.push(new CachingInterceptor(cachingService, httpAdapterHostService, metricsService));
+  }
+  
+  globalInterceptors.push(new FieldsInterceptor());
+  globalInterceptors.push(new ExtractInterceptor());
+  globalInterceptors.push(new CleanupInterceptor());
+
+  publicApp.useGlobalInterceptors(...globalInterceptors);
+  const description = readFileSync(join(__dirname, '..', 'docs', 'swagger.md'), 'utf8');
 
   let documentBuilder = new DocumentBuilder()
     .setTitle('Elrond API')

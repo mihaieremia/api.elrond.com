@@ -14,12 +14,22 @@ export class VmQueryService {
     this.logger = new Logger(VmQueryService.name);
   }
 
-  async vmQueryFullResult(
-    contract: string,
-    func: string,
-    caller: string | undefined = undefined,
-    args: string[] = [],
-  ): Promise<any> {
+  private async computeTtls(contract: string, func: string): Promise<{localTtl: number, remoteTtl: number}> {
+    let isCachingQueryFunction = await this.cachingService.isCachingQueryFunction(contract, func);
+    let secondsRemainingUntilNextRound = await this.cachingService.getSecondsRemainingUntilNextRound();
+
+    let localTtl = isCachingQueryFunction ? Constants.oneHour() : secondsRemainingUntilNextRound;
+
+    // no need to store value remotely just to evict it one second later
+    let remoteTtl = localTtl > 1 ? localTtl : 0;
+
+    return {
+      localTtl,
+      remoteTtl,
+    }
+  }
+
+  async vmQueryFullResult(contract: string, func: string, caller: string | undefined = undefined, args: string[] = []): Promise<any> {
     let key = `vm-query:${contract}:${func}`;
     if (caller) {
       key += `:${caller}`;
@@ -29,17 +39,7 @@ export class VmQueryService {
       key += `@${args.join('@')}`;
     }
 
-    const isCachingQueryFunction =
-      await this.cachingService.isCachingQueryFunction(contract, func);
-    const secondsRemainingUntilNextRound =
-      await this.cachingService.getSecondsRemainingUntilNextRound();
-
-    const localTtl = isCachingQueryFunction
-      ? Constants.oneHour()
-      : secondsRemainingUntilNextRound;
-
-    // no need to store value remotely just to evict it one second later
-    const remoteTtl = localTtl > 1 ? localTtl : 0;
+    const { localTtl, remoteTtl } = await this.computeTtls(contract, func);
 
     return await this.cachingService.getOrSetCache(
       key,
@@ -70,18 +70,9 @@ export class VmQueryService {
       if (skipCache) {
         result = await this.vmQueryRaw(contract, func, caller, args);
       } else {
-        const isCachingQueryFunction =
-          await this.cachingService.isCachingQueryFunction(contract, func);
-        const secondsRemainingUntilNextRound =
-          await this.cachingService.getSecondsRemainingUntilNextRound();
-
-        const localTtl = isCachingQueryFunction
-          ? Constants.oneHour()
-          : secondsRemainingUntilNextRound;
-
-        // no need to store value remotely just to evict it one second later
-        const remoteTtl = localTtl > 1 ? localTtl : 0;
-
+        
+        const { localTtl, remoteTtl } = await this.computeTtls(contract, func);
+        
         result = await this.cachingService.getOrSetCache(
           key,
           async () => await this.vmQueryRaw(contract, func, caller, args),
@@ -93,12 +84,8 @@ export class VmQueryService {
       const data = result.data.data;
 
       return 'ReturnData' in data ? data.ReturnData : data.returnData;
-    } catch (error) {
-      this.logger.error(
-        `Error in vm query for address '${contract}', function '${func}', caller '${caller}', args '${JSON.stringify(
-          args,
-        )}'. Error message: ${error.response?.data?.error}`,
-      );
+    } catch (error: any) {
+      this.logger.error(`Error in vm query for address '${contract}', function '${func}', caller '${caller}', args '${JSON.stringify(args)}'. Error message: ${error.response?.data?.error}`);
       throw error;
     }
   }

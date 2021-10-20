@@ -1,28 +1,19 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpException,
-  HttpStatus,
-  Logger,
-  Param,
-  Put,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { EventPattern } from '@nestjs/microservices';
-import { ApiResponse } from '@nestjs/swagger';
-import { CachingService } from 'src/common/caching.service';
-import { JwtAdminGuard } from 'src/utils/guards/jwt.admin.guard';
-import { JwtAuthenticateGuard } from 'src/utils/guards/jwt.authenticate.guard';
-import { CacheValue } from './entities/cache.value';
+import { Body, Controller, Delete, Get, HttpException, HttpStatus, Inject, Logger, Param, Put, Query, UseGuards } from "@nestjs/common";
+import { ClientProxy, EventPattern } from "@nestjs/microservices";
+import { ApiResponse } from "@nestjs/swagger";
+import { CachingService } from "src/common/caching.service";
+import { JwtAdminGuard } from "src/utils/guards/jwt.admin.guard";
+import { JwtAuthenticateGuard } from "src/utils/guards/jwt.authenticate.guard";
+import { CacheValue } from "./entities/cache.value";
 
 @Controller()
 export class CacheController {
   private readonly logger: Logger;
 
-  constructor(private readonly cachingService: CachingService) {
+  constructor(
+    private readonly cachingService: CachingService,
+    @Inject('PUBSUB_SERVICE') private clientProxy: ClientProxy,
+  ) {
     this.logger = new Logger(CacheController.name);
   }
 
@@ -52,12 +43,8 @@ export class CacheController {
     description: 'Key has been updated',
   })
   async setCache(@Param('key') key: string, @Body() cacheValue: CacheValue) {
-    await this.cachingService.setCacheRemote(
-      key,
-      cacheValue.value,
-      cacheValue.ttl,
-    );
-    await this.deleteCacheKey([key]);
+    await this.cachingService.setCacheRemote(key, cacheValue.value, cacheValue.ttl);
+    this.clientProxy.emit('deleteCacheKeys', [ key ]);
   }
 
   @UseGuards(JwtAuthenticateGuard, JwtAdminGuard)
@@ -71,11 +58,8 @@ export class CacheController {
     description: 'Key not found',
   })
   async delCache(@Param('key') key: string) {
-    const value = await this.cachingService.getCacheRemote(key);
-    if (!value) {
-      throw new HttpException('Key not found', HttpStatus.NOT_FOUND);
-    }
-    await this.deleteCacheKey([key]);
+    const keys = await this.cachingService.deleteInCache(key);
+    this.clientProxy.emit('deleteCacheKeys', keys);
   }
 
   @UseGuards(JwtAuthenticateGuard, JwtAdminGuard)

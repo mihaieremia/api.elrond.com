@@ -1,7 +1,11 @@
 import { AbstractQuery } from './abstract.query';
 
 export class ExistsQuery extends AbstractQuery {
-  buildQuery(key: string): any {
-    return { exists: { field: key } };
+  constructor(private readonly key: string) {
+    super();
+  }
+
+  getQuery(): any {
+    return { exists: { field: this.key } };
   }
 }

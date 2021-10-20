@@ -11,6 +11,7 @@ import { NetworkService } from './endpoints/network/network.service';
 import { TransactionController } from './endpoints/transactions/transaction.controller';
 import { TransactionService } from './endpoints/transactions/transaction.service';
 import { TokenController } from './endpoints/tokens/token.controller';
+import { NftController } from './endpoints/nfts/nft.controller';
 import { TokenService } from './endpoints/tokens/token.service';
 import { BlockService } from './endpoints/blocks/block.service';
 import { BlockController } from './endpoints/blocks/block.controller';
@@ -56,12 +57,19 @@ import { TagController } from './endpoints/nfttags/tag.controller';
 import { AVGAPRController } from './endpoints/avgapr/avgapr.controller';
 import { DistributionController } from './endpoints/distribution/distribution.controller';
 import { TagService } from './endpoints/nfttags/tag.service';
-import DailyRotateFile from 'winston-daily-rotate-file';
-import './utils/extensions/array.extensions';
-import './utils/extensions/date.extensions';
-import './utils/extensions/number.extensions';
-import { AVGAPRService } from './endpoints/avgapr/avgapr.service';
-import { DistributionService } from './endpoints/distribution/distribution.service';
+import { ExtrasApiService } from './common/extras-api.service';
+import { TransactionScamCheckService } from './endpoints/transactions/scam-check/transaction-scam-check.service';
+import { PotentialScamTransactionChecker } from './endpoints/transactions/scam-check/potential-scam-transaction.checker';
+const DailyRotateFile = require('winston-daily-rotate-file');
+import "./utils/extensions/array.extensions";
+import "./utils/extensions/date.extensions";
+import "./utils/extensions/number.extensions";
+import { NftExtendedAttributesService } from './common/nft.extendedattributes.service';
+import { TransactionGetService } from './endpoints/transactions/transaction.get.service';
+import { TokenTransferService } from './endpoints/transactions/token.transfer.service';
+import { TransactionPriceService } from './endpoints/transactions/transaction.price.service';
+import { NftService } from './endpoints/nfts/nft.service';
+import { EsdtService } from './common/esdt.service';
 
 @Module({
   imports: [
@@ -91,79 +99,27 @@ import { DistributionService } from './endpoints/distribution/distribution.servi
     }),
   ],
   controllers: [
-    NetworkController,
-    DistributionController,
-    AccountController,
-    TransactionController,
-    TokenController,
-    BlockController,
-    MiniBlockController,
-    RoundController,
-    NodeController,
-    ProviderController,
-    DelegationLegacyController,
-    StakeController,
-    DelegationController,
-    VmQueryController,
-    ShardController,
-    IdentitiesController,
-    ProxyController,
-    KeysController,
-    WaitingListController,
-    TagController,
-    AVGAPRController,
+    NetworkController, AccountController, TransactionController, TokenController, BlockController,
+    MiniBlockController, RoundController, NodeController, ProviderController,
+    DelegationLegacyController, StakeController, DelegationController,
+    VmQueryController, ShardController, IdentitiesController, ProxyController,
+    KeysController, WaitingListController, TagController, NftController,
   ],
   providers: [
-    DistributionService,
-    NetworkService,
-    ApiConfigService,
-    AccountService,
-    ElasticService,
-    GatewayService,
-    TransactionService,
-    TokenService,
-    BlockService,
-    MiniBlockService,
-    RoundService,
-    NodeService,
-    VmQueryService,
-    CachingService,
-    KeybaseService,
-    ProviderService,
-    StakeService,
-    LoggingInterceptor,
-    ApiService,
-    ProfilerService,
-    DelegationLegacyService,
-    DelegationService,
-    CacheConfigService,
-    CachingInterceptor,
-    ShardService,
-    MetricsService,
-    IdentitiesService,
-    TokenAssetService,
-    DataApiService,
-    KeysService,
-    WaitingListService,
-    BlsService,
-    TagService,
-    AVGAPRService,
+    NetworkService, ApiConfigService, AccountService, ElasticService, GatewayService, TransactionService,
+    TokenService, BlockService, MiniBlockService, RoundService, NodeService, VmQueryService,
+    CachingService, KeybaseService, ProviderService,
+    StakeService, LoggingInterceptor, ApiService, ProfilerService, DelegationLegacyService,
+    DelegationService, CacheConfigService, CachingInterceptor, ShardService, MetricsService, IdentitiesService,
+    TokenAssetService, DataApiService, KeysService, WaitingListService, BlsService, TagService, ExtrasApiService,
+    TransactionScamCheckService, PotentialScamTransactionChecker, NftExtendedAttributesService,
+    TransactionGetService, TokenTransferService,
+    TransactionPriceService, NftService, EsdtService
   ],
   exports: [
-    ApiConfigService,
-    RoundService,
-    CachingService,
-    TransactionService,
-    GatewayService,
-    MetricsService,
-    NodeService,
-    TokenService,
-    ShardService,
-    IdentitiesService,
-    ProviderService,
-    KeybaseService,
-    DataApiService,
-    ApiService,
-  ],
+    ApiConfigService, RoundService, CachingService, TransactionService, GatewayService, MetricsService, NodeService,
+    ShardService, IdentitiesService, ProviderService, KeybaseService, DataApiService, ApiService,
+    BlsService, NetworkService, AccountService, EsdtService,
+  ]
 })
-export class PublicAppModule {}
+export class PublicAppModule { }

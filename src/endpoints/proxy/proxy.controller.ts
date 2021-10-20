@@ -16,8 +16,10 @@ import {
 } from '@nestjs/swagger';
 import { GatewayService } from 'src/common/gateway.service';
 import { Response } from 'express';
-import { VmQueryRequest } from '../vm.query/entities/vm.query.request';
-import { VmQueryService } from '../vm.query/vm.query.service';
+import { VmQueryRequest } from "../vm.query/entities/vm.query.request";
+import { VmQueryService } from "../vm.query/vm.query.service";
+import { CachingService } from "src/common/caching.service";
+import { Constants } from "src/utils/constants";
 
 @Controller()
 @ApiTags('proxy')
@@ -25,6 +27,7 @@ export class ProxyController {
   constructor(
     private readonly gatewayService: GatewayService,
     private readonly vmQueryService: VmQueryService,
+    private readonly cachingService: CachingService,
   ) {}
 
   @Get('/address/:address')
@@ -179,7 +182,7 @@ export class ProxyController {
         query.args,
       );
       res.status(HttpStatus.OK).json(result).send();
-    } catch (error) {
+    } catch (error: any) {
       res.status(HttpStatus.BAD_REQUEST).json(error.response.data).send();
     }
   }
@@ -214,7 +217,19 @@ export class ProxyController {
   @Get('/node/heartbeatstatus')
   @ApiExcludeEndpoint()
   async getNodeHeartbeatStatus(@Res() res: Response) {
-    await this.gatewayGet(res, 'node/heartbeatstatus');
+    try {
+      let heartbeat = await this.cachingService.getOrSetCache(
+        'heartbeatstatus',
+        async () => {
+          const result = await this.gatewayService.getRaw('node/heartbeatstatus');
+          return result.data;
+        },
+        Constants.oneMinute() * 2,
+      );
+      res.json(heartbeat);
+    } catch (error: any) {
+      res.status(HttpStatus.BAD_REQUEST).json(error.response.data).send();
+    }
   }
 
   @Get('/validator/statistics')
@@ -297,7 +312,7 @@ export class ProxyController {
     try {
       const result = await this.gatewayService.getRaw(url);
       res.json(result.data);
-    } catch (error) {
+    } catch (error: any) {
       res.status(HttpStatus.BAD_REQUEST).json(error.response.data).send();
     }
   }
@@ -306,7 +321,7 @@ export class ProxyController {
     try {
       const result = await this.gatewayService.createRaw(url, data);
       res.json(result.data);
-    } catch (error) {
+    } catch (error: any) {
       res.status(HttpStatus.BAD_REQUEST).json(error.response.data).send();
     }
   }

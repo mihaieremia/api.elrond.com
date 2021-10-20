@@ -1,6 +1,14 @@
 import { AbstractQuery } from './abstract.query';
 export class RangeQuery extends AbstractQuery {
-  buildQuery(key: string, value: any): any {
-    return { range: { [key]: { lte: value.before, gte: value.after } } };
+  constructor(
+    private readonly key: string,
+    private readonly before: number | undefined,
+    private readonly after: number | undefined,
+  ) {
+    super();
+  }
+
+  getQuery(): any {
+    return { range: { [this.key]: { lte: this.before, gte: this.after } } };
   }
 }

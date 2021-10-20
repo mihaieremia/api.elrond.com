@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Stats } from 'src/endpoints/network/entities/stats';
 import { ApiConfigService } from 'src/common/api.config.service';
 import { ApiService } from 'src/common/api.service';
@@ -16,7 +16,7 @@ import { TransactionService } from '../transactions/transaction.service';
 import { VmQueryService } from '../vm.query/vm.query.service';
 import { NetworkConstants } from './entities/constants';
 import { Economics } from './entities/economics';
-import { NetworkConfig } from './entities/networkConfig';
+import { NetworkConfig } from './entities/network.config';
 import { StakeService } from '../stake/stake.service';
 
 @Injectable()
@@ -31,7 +31,8 @@ export class NetworkService {
     private readonly transactionService: TransactionService,
     private readonly dataApiService: DataApiService,
     private readonly apiService: ApiService,
-    private readonly stakeService: StakeService,
+    @Inject(forwardRef( () => StakeService))
+    private readonly stakeService: StakeService
   ) {}
 
   async getConstants(): Promise<NetworkConstants> {
@@ -90,7 +91,7 @@ export class NetworkService {
     );
   }
 
-  private async getEconomicsRaw(): Promise<Economics> {
+  async getEconomicsRaw(): Promise<Economics> {
     const locked = 2660000;
     const [
       {
@@ -181,7 +182,7 @@ export class NetworkService {
       transactions,
       refreshRate,
       epoch,
-      roundsPassed,
+      roundsPassed: roundsPassed % roundsPerEpoch,
       roundsPerEpoch,
     };
   }

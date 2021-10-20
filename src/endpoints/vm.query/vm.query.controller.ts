@@ -17,21 +17,9 @@ export class VmQueryController {
   async query(@Body() query: VmQueryRequest, @Res() res: Response) {
     let result: any;
     try {
-      result = await this.vmQueryService.vmQueryFullResult(
-        query.scAddress,
-        query.funcName,
-        query.caller,
-        query.args,
-      );
-    } catch (error) {
-      res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({
-          statusCode: HttpStatus.BAD_REQUEST,
-          code: error.response.data.code,
-          message: error.response.data.error,
-        })
-        .send();
+      result = await this.vmQueryService.vmQueryFullResult(query.scAddress, query.funcName, query.caller, query.args);
+    } catch (error: any) {
+      res.status(HttpStatus.BAD_REQUEST).json({statusCode: HttpStatus.BAD_REQUEST, code: error.response.data.code, message: error.response.data.error}).send();
       return;
     }
 
