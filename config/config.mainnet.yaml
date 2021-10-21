@@ -16,7 +16,7 @@ urls:
   elastic:
     - 'https://index.elrond.com'
   gateway:
-    - 'https://gateway.elrond.com'
+    - 'http://65.108.7.21:8079'
   redis: '127.0.0.1'
   providers: 'https://internal-delegation-api.elrond.com/providers'
   media: 'https://media.elrond.com'
