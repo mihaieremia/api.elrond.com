@@ -1621,7 +1621,7 @@ const calculateReward = async (
 };
 
 const isOwner = async (agency: string, address: string) => {
-  const provider = new ProxyProvider('https://gateway.elrond.com', {
+  const provider = new ProxyProvider('http://65.108.7.21:8079', {
     timeout: 20000,
   });
   const delegationContract = new SmartContract({
