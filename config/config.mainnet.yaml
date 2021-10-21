@@ -3,9 +3,9 @@ metaChainShardId: 4294967295
 useLegacyElastic: true
 api:
   public: true
-  private: true
+  private: false
 cron:
-  transactionProcessor: true
+  transactionProcessor: false
   transactionProcessorMaxLookBehind: 1000
   cacheWarmer: true
 urls:

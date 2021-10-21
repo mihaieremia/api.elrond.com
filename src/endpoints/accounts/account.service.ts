@@ -334,6 +334,90 @@ export class AccountService {
           if (
             ['claimRewards', 'reDelegateRewards'].includes(tx.method as string)
           ) {
+            if (tx.method === 'reDelegateRewards') {
+              let pricePerEpoch: string;
+              if (epoch in epochPrice) {
+                pricePerEpoch = epochPrice[epoch];
+              } else {
+                pricePerEpoch = (
+                  await getEpochTimePrice(epoch, tx.timestamp, '')
+                ).price;
+                epochPrice[epoch] = pricePerEpoch;
+              }
+              if (!result.allRedelegations[tx.receiver]) {
+                result.allRedelegations[tx.receiver] = [];
+              }
+              result.allRedelegations[tx.receiver].push({
+                date: dateTime.toLocaleString('en-GB', { timeZone: 'UTC' }),
+                value: tx.value,
+                epoch: epoch,
+                hash: tx.txHash,
+                price: pricePerEpoch,
+                label: 'reward',
+                currency: 'EGLD',
+                usdReward: (
+                  parseFloat(pricePerEpoch) * parseFloat(tx.value)
+                ).toFixed(4),
+              });
+            }
+            if (
+              tx.method === 'claimRewards' &&
+              tx.receiver ===
+                'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt'
+            ) {
+              let pricePerEpoch: string;
+              if (epoch in epochPrice) {
+                pricePerEpoch = epochPrice[epoch];
+              } else {
+                pricePerEpoch = (
+                  await getEpochTimePrice(epoch, tx.timestamp, '')
+                ).price;
+                epochPrice[epoch] = pricePerEpoch;
+              }
+              result.phase2ClaimRewards.push({
+                date: dateTime.toLocaleString('en-GB', { timeZone: 'UTC' }),
+                value: tx.value,
+                epoch: epoch,
+                hash: tx.txHash,
+                price: pricePerEpoch,
+                label: 'income',
+                currency: 'EGLD',
+                usdReward: (
+                  parseFloat(pricePerEpoch) * parseFloat(tx.value)
+                ).toFixed(4),
+              });
+            }
+
+            if (
+              tx.method === 'claimRewards' &&
+              tx.receiver !==
+                'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt'
+            ) {
+              if (!result.allClaims[tx.receiver]) {
+                result.allClaims[tx.receiver] = [];
+              }
+              let pricePerEpoch: string;
+              if (epoch in epochPrice) {
+                pricePerEpoch = epochPrice[epoch];
+              } else {
+                pricePerEpoch = (
+                  await getEpochTimePrice(epoch, tx.timestamp, '')
+                ).price;
+                epochPrice[epoch] = pricePerEpoch;
+              }
+              result.allClaims[tx.receiver].push({
+                date: dateTime.toLocaleString('en-GB', { timeZone: 'UTC' }),
+                value: tx.value,
+                epoch: epoch,
+                hash: tx.txHash,
+                price: pricePerEpoch,
+                label: 'income',
+                currency: 'EGLD',
+                usdReward: (
+                  parseFloat(pricePerEpoch) * parseFloat(tx.value)
+                ).toFixed(4),
+              });
+            }
           } else if (tx.method === 'unBond') {
             if (parseFloat(tx.fee) < 0) {
               txFee = new BigNumber('0.031760467');
@@ -1403,7 +1487,7 @@ const calculateReward = async (
   isOwner: boolean,
   todayPrice: number,
 ): Promise<Rewards> => {
-  const provider = new ProxyProvider('https://api.elrond.com', {
+  const provider = new ProxyProvider('http://65.108.7.21:8079', {
     timeout: 25000,
   });
   const delegationContract = new SmartContract({
