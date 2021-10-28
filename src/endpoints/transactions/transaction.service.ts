@@ -200,6 +200,16 @@ export class TransactionService {
             tx.value = values[1];
             tx.data = values.join('@');
           }
+          if (
+            values[0] == 'unStakeTokens' &&
+            tx.receiver ===
+              'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+          ) {
+            values[1] = new BigNumber(values[1], 16).toString(10);
+            values[1] = NumberUtils.denominateFloat(values[1]);
+            tx.value = values[1];
+            tx.data = values.join('@');
+          }
         }
       }
       if (tx.scResults !== null) {
@@ -214,7 +224,11 @@ export class TransactionService {
               tx.scResults[index].value,
             );
           }
-          if (scResult.data && scResult.data !== '') {
+          if (
+            scResult.data &&
+            scResult.data !== '' &&
+            scResult.data !== '@ok'
+          ) {
             tx.scResults[index].data = Buffer.from(
               tx.scResults[index].data,
               'base64',
@@ -243,7 +257,8 @@ export class TransactionService {
             } else {
               if (
                 scResult.data.includes('unbond') ||
-                scResult.data.includes('claim')
+                scResult.data.includes('claim') ||
+                tx.data === 'unBondTokens'
               ) {
                 tx.value = scResult.value;
               }
@@ -254,7 +269,8 @@ export class TransactionService {
               tx.data === 'withdraw' ||
               tx.data === 'reDelegateRewards' ||
               tx.data === 'claimRewards' ||
-              tx.method === 'unBond'
+              tx.method === 'unBond' ||
+              tx.data === 'unBondTokens'
             ) {
               if (parseFloat(scResult.value) > 0) {
                 tx.value = scResult.value;

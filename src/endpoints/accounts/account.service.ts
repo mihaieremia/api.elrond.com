@@ -699,6 +699,11 @@ export class AccountService {
                 ],
               ),
             );
+            console.log(
+              result.staked[
+                'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+              ],
+            );
             if (!result.epochHistoryStaked[epoch]) {
               result.epochHistoryStaked[epoch] = {
                 staked: {
@@ -887,11 +892,39 @@ export class AccountService {
           }
 
           break;
+        case 'unStakeTokens':
+          if (
+            tx.receiver ===
+            'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+          ) {
+            if (!(tx.receiver in result.unDelegated)) {
+              result.unDelegated[tx.receiver] = bigTxValue;
+            } else {
+              result.unDelegated[tx.receiver] =
+                result.unDelegated[tx.receiver].plus(bigTxValue);
+            }
+            if (result.staked[tx.receiver]) {
+              result.staked[tx.receiver] =
+                result.staked[tx.receiver].minus(bigTxValue);
+            }
+          }
+
+          break;
         case 'unBond':
           result.available = result.available.plus(bigTxValue);
           if (
             tx.receiver ==
             'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt'
+          ) {
+            result.unDelegated[tx.receiver] =
+              result.unDelegated[tx.receiver].minus(bigTxValue);
+          }
+          break;
+        case 'unBondTokens':
+          result.available = result.available.plus(bigTxValue);
+          if (
+            tx.receiver ==
+            'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
           ) {
             result.unDelegated[tx.receiver] =
               result.unDelegated[tx.receiver].minus(bigTxValue);
