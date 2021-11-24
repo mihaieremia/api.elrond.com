@@ -288,7 +288,7 @@ export class TransactionService {
         ) {
           tx.points = TransactionPoint.contractDeployment;
         }
-        if (!tx.data.includes('@')) {
+        if (tx.data && !tx.data.includes('@')) {
           tx.method = tx.data;
         }
       } else {
